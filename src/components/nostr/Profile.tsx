@@ -34,7 +34,7 @@ export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) =
 	return (
 		<div className='space-y-6'>
 			<div className='bg-white dark:bg-gray-800 rounded-lg shadow p-6'>
-				<div className='flex items-center space-x-4'>
+				<div className='flex items-start space-x-4'>
 					{profile?.picture && (
 						<img
 							src={profile.picture}
