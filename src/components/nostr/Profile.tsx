@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { useNostrStore } from '@/store/useNostrStore';
 import type { Event } from 'nostr-tools';
+import { ImageViewer } from './ImageViewer';
+import { extractImageUrls, formatContent } from '@/utils/content';
 
 interface ProfileProps {
 	pubkey: string;
@@ -65,7 +67,14 @@ export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) =
 						<div className='text-sm text-gray-500 dark:text-gray-400 mb-2'>
 							{new Date(event.created_at * 1000).toLocaleString()}
 						</div>
-						<div className='text-gray-900 dark:text-white whitespace-pre-wrap'>{event.content}</div>
+						<>
+							<div className='text-gray-900 dark:text-white whitespace-pre-wrap'>
+								{formatContent(event.content)}
+							</div>
+							{extractImageUrls(event.content).map((url, index) => (
+								<ImageViewer key={`${event.id}-img-${index}`} url={url} />
+							))}
+						</>
 					</div>
 				))}
 				{userEvents.length === 0 && (

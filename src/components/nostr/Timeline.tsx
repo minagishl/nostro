@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { useNostrStore } from '@/store/useNostrStore';
 import Link from 'next/link';
+import { ImageViewer } from './ImageViewer';
+import { extractImageUrls, formatContent } from '@/utils/content';
 
 export const Timeline: React.FC = () => {
 	const { events, loadEvents, profiles } = useNostrStore();
@@ -32,7 +34,14 @@ export const Timeline: React.FC = () => {
 							{formatDate(event.created_at)}
 						</div>
 					</div>
-					<div className='text-gray-900 dark:text-white whitespace-pre-wrap'>{event.content}</div>
+					<>
+						<div className='text-gray-900 dark:text-white whitespace-pre-wrap'>
+							{formatContent(event.content)}
+						</div>
+						{extractImageUrls(event.content).map((url, index) => (
+							<ImageViewer key={`${event.id}-img-${index}`} url={url} />
+						))}
+					</>
 				</div>
 			))}
 			{events.length === 0 && (
