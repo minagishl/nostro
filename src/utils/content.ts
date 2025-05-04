@@ -13,6 +13,14 @@ function convertMentions(content: string): string {
 	return content.replace(mentionRegex, '<a href="/profile/$1">@$1</a>');
 }
 
+function convertUrls(content: string): string {
+	const urlRegex = /(?<!["'])(https?:\/\/[^\s<]+)(?![^<]*>|[^<>]*<\/)/gi;
+	return content.replace(
+		urlRegex,
+		(url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`
+	);
+}
+
 export function formatContent(content: string): string {
 	// Remove image URLs from the displayed content to avoid duplicates
 	const imageUrls = extractImageUrls(content);
@@ -22,9 +30,10 @@ export function formatContent(content: string): string {
 		formattedContent = formattedContent.replace(url, '');
 	});
 
-	// Convert nostr: links and @mentions
+	// Convert nostr: links, @mentions, and URLs
 	formattedContent = convertNostrLinks(formattedContent);
 	formattedContent = convertMentions(formattedContent);
+	formattedContent = convertUrls(formattedContent);
 
 	return formattedContent.trim();
 }
