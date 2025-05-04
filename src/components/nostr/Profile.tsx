@@ -4,9 +4,10 @@ import type { Event } from 'nostr-tools';
 
 interface ProfileProps {
 	pubkey: string;
+	displayIdentifier?: string;
 }
 
-export const Profile: React.FC<ProfileProps> = ({ pubkey }) => {
+export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) => {
 	const { profiles, loadProfile, events } = useNostrStore();
 
 	useEffect(() => {
@@ -40,9 +41,7 @@ export const Profile: React.FC<ProfileProps> = ({ pubkey }) => {
 							<p className='text-gray-600 dark:text-gray-300 mt-2'>{profile.about}</p>
 						)}
 						<div className='text-sm text-gray-500 dark:text-gray-400 mt-2'>
-							<code>
-								{pubkey.slice(0, 8)}...{pubkey.slice(-8)}
-							</code>
+							<code>{displayIdentifier || `${pubkey.slice(0, 8)}...${pubkey.slice(-8)}`}</code>
 						</div>
 					</div>
 				</div>
