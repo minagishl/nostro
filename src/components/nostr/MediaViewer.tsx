@@ -93,7 +93,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
 				alt='Media content'
 				className={
 					isExpanded
-						? 'w-full h-full object-contain bg-black'
+						? 'w-full h-full object-contain'
 						: 'rounded-lg max-h-64 w-full object-contain cursor-pointer hover:opacity-90 bg-black'
 				}
 				onClick={onClick}
@@ -153,10 +153,10 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 		const mediaType = getMediaType(validUrls[0]);
 
 		return (
-			<div className='fixed inset-0 z-50 flex items-center justify-center bg-black'>
+			<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/75'>
 				<div className='relative w-screen h-screen p-8'>
 					<button
-						className='absolute top-8 right-8 text-white bg-black bg-opacity-50 hover:bg-opacity-75 rounded-full p-2'
+						className='absolute top-8 right-8 text-white bg-black/50 hover:bg-black/75 rounded-full p-2'
 						onClick={toggleExpand}
 					>
 						<svg
