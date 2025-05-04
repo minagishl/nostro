@@ -8,19 +8,23 @@ import { useNostrStore } from '@/store/useNostrStore';
 export default function ProfilePage(props: { params: Promise<{ identifier: string }> }) {
 	const params = use(props.params);
 	const [pubkey, setPubkey] = useState<string | null>(null);
+	const [decodedIdentifier, setDecodedIdentifier] = useState<string>('');
 	const lookupNip05 = useNostrStore((state) => state.lookupNip05);
 
 	useEffect(() => {
 		const loadPubkey = async () => {
+			const decoded = decodeURIComponent(params.identifier);
+			setDecodedIdentifier(decoded);
+
 			// If it's a hex pubkey, use it directly
-			if (/^[0-9a-f]{64}$/.test(params.identifier)) {
-				setPubkey(params.identifier);
+			if (/^[0-9a-f]{64}$/.test(decoded)) {
+				setPubkey(decoded);
 				return;
 			}
 
 			// Otherwise, treat it as a NIP-05 identifier and look it up
 			try {
-				const resolvedPubkey = await lookupNip05(params.identifier);
+				const resolvedPubkey = await lookupNip05(decoded);
 				if (resolvedPubkey) {
 					setPubkey(resolvedPubkey);
 				}
@@ -44,7 +48,7 @@ export default function ProfilePage(props: { params: Promise<{ identifier: strin
 
 	return (
 		<Layout>
-			<Profile pubkey={pubkey} displayIdentifier={params.identifier} />
+			<Profile pubkey={pubkey} displayIdentifier={decodedIdentifier} />
 		</Layout>
 	);
 }

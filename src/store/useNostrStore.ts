@@ -59,14 +59,16 @@ async function verifyNip05(identifier: string, pubkey: string): Promise<boolean>
 
 async function lookupNip05Pubkey(identifier: string): Promise<string | null> {
 	try {
-		let username, domain;
+		let username: string;
+		let domain: string;
+
 		if (identifier.includes('@')) {
 			[username, domain] = identifier.split('@');
+			if (!username || !domain) return null;
 		} else {
-			domain = identifier;
 			username = '_';
+			domain = identifier;
 		}
-		if (!domain) return null;
 
 		const response = await fetch(`https://${domain}/.well-known/nostr.json?name=${username}`);
 		const data = await response.json();
