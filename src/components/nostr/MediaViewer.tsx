@@ -107,12 +107,8 @@ const MediaItem: React.FC<MediaItemProps> = ({
 		return (
 			<video
 				src={url}
-				className={
-					isExpanded
-						? 'w-full h-full object-contain bg-black'
-						: 'rounded-lg max-h-64 w-full object-contain cursor-pointer hover:opacity-90 bg-black'
-				}
-				onClick={onClick}
+				className='rounded-lg max-h-64 w-full object-contain bg-black'
+				onClick={() => {}}
 				onLoadedData={onLoad}
 				onError={onError}
 				controls
@@ -159,9 +155,8 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 	const validUrls = urls.filter((url) => getMediaType(url) !== 'unknown');
 	if (validUrls.length === 0) return null;
 
-	if (isExpanded) {
-		const mediaType = getMediaType(validUrls[0]);
-
+	// If it's a video, do not expand
+	if (isExpanded && getMediaType(validUrls[0]) === 'image') {
 		return (
 			<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/75'>
 				<div className='relative w-screen h-screen p-8'>
@@ -186,7 +181,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 					</button>
 					<MediaItem
 						url={validUrls[0]}
-						type={mediaType}
+						type='image'
 						onLoad={() => {}}
 						onError={() => {}}
 						onClick={() => {}}
@@ -207,7 +202,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 						type={getMediaType(validUrls[0])}
 						onLoad={() => {}}
 						onError={() => {}}
-						onClick={toggleExpand}
+						onClick={getMediaType(validUrls[0]) === 'image' ? toggleExpand : () => {}}
 					/>
 				</div>
 			)}
@@ -223,7 +218,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 									type={getMediaType(url)}
 									onLoad={() => {}}
 									onError={() => {}}
-									onClick={toggleExpand}
+									onClick={getMediaType(url) === 'image' ? toggleExpand : () => {}}
 								/>
 							))}
 						</div>
@@ -237,7 +232,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 										type={getMediaType(url)}
 										onLoad={() => {}}
 										onError={() => {}}
-										onClick={toggleExpand}
+										onClick={getMediaType(url) === 'image' ? toggleExpand : () => {}}
 									/>
 								))}
 							</div>
@@ -246,7 +241,11 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 								type={getMediaType(validUrls[validUrls.length - 1])}
 								onLoad={() => {}}
 								onError={() => {}}
-								onClick={toggleExpand}
+								onClick={
+									getMediaType(validUrls[validUrls.length - 1]) === 'image'
+										? toggleExpand
+										: () => {}
+								}
 							/>
 						</>
 					)}
