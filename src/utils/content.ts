@@ -5,7 +5,10 @@ export function extractImageUrls(content: string): string[] {
 
 function convertNostrLinks(content: string): string {
 	const nostrRegex = /nostr:(\w+)/g;
-	return content.replace(nostrRegex, '<a href="/profile/$1">nostr:$1</a>');
+	return content.replace(nostrRegex, (match, identifier) => {
+		const truncated = identifier.slice(0, 10);
+		return `<a href="/profile/${identifier}">nostr:${truncated}</a>`;
+	});
 }
 
 function convertMentions(content: string): string {
