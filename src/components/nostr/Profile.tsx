@@ -21,11 +21,12 @@ const formatDisplayIdentifier = (identifier: string | undefined, pubkey: string)
 };
 
 export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) => {
-	const { profiles, loadProfile, events } = useNostrStore();
+	const { profiles, loadProfile, loadUserEvents, events } = useNostrStore();
 
 	useEffect(() => {
 		loadProfile(pubkey);
-	}, [pubkey, loadProfile]);
+		loadUserEvents(pubkey);
+	}, [pubkey, loadProfile, loadUserEvents]);
 
 	const profile = profiles[pubkey];
 	const userEvents = events.filter((event: Event) => event.pubkey === pubkey);

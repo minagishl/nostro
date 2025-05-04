@@ -39,6 +39,7 @@ interface NostrState {
 	setKeys: (privateKey: string) => void;
 	publishNote: (content: string) => Promise<void>;
 	loadEvents: () => Promise<void>;
+	loadUserEvents: (pubkey: string) => Promise<void>;
 	loadProfile: (pubkey: string) => Promise<void>;
 	lookupNip05: (identifier: string) => Promise<string | null>;
 }
@@ -136,6 +137,18 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 	loadEvents: async () => {
 		const { pool, relays } = get();
 		const filter: Filter = {
+			kinds: [1],
+			limit: 100,
+		};
+
+		const events = await pool.querySync(relays, filter);
+		set({ events: events.sort((a, b) => b.created_at - a.created_at) });
+	},
+
+	loadUserEvents: async (pubkey: string) => {
+		const { pool, relays } = get();
+		const filter: Filter = {
+			authors: [pubkey],
 			kinds: [1],
 			limit: 100,
 		};
