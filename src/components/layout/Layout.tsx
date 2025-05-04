@@ -10,12 +10,18 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 						<Link href='/'>
 							<h1 className='text-2xl font-bold text-gray-900 dark:text-white'>Nostro</h1>
 						</Link>
-						<nav>
+						<nav className='space-x-6'>
 							<Link
 								href='/search'
 								className='text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
 							>
 								Search
+							</Link>
+							<Link
+								href='/about'
+								className='text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+							>
+								About
 							</Link>
 						</nav>
 					</div>
