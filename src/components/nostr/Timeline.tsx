@@ -1,11 +1,32 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNostrStore } from '@/store/useNostrStore';
 import Link from 'next/link';
 import { MediaViewer } from './MediaViewer';
 import { extractMediaUrls, formatContent } from '@/utils/content';
 
 export const Timeline: React.FC = () => {
-	const { events, loadEvents, profiles } = useNostrStore();
+	const { events, loadEvents } = useNostrStore();
+	const [displayCount, setDisplayCount] = useState(10);
+	const observerRef = useRef<HTMLDivElement>(null);
+	const displayEvents = events.slice(0, displayCount);
+
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			(entries) => {
+				const [entry] = entries;
+				if (entry.isIntersecting && events.length > displayCount) {
+					setDisplayCount((prev) => prev + 10);
+				}
+			},
+			{ threshold: 0.5 }
+		);
+
+		if (observerRef.current) {
+			observer.observe(observerRef.current);
+		}
+
+		return () => observer.disconnect();
+	}, [displayCount, events.length]);
 
 	useEffect(() => {
 		loadEvents();
@@ -19,7 +40,7 @@ export const Timeline: React.FC = () => {
 
 	return (
 		<div className='space-y-4'>
-			{events.map((event) => (
+			{displayEvents.map((event) => (
 				<div key={event.id} className='bg-white dark:bg-gray-800 rounded-lg shadow p-4'>
 					<div className='flex justify-between items-start mb-2'>
 						<div className='flex flex-col'>
@@ -27,7 +48,7 @@ export const Timeline: React.FC = () => {
 								href={`/profile/${event.pubkey}`}
 								className='text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400'
 							>
-								{event.pubkey.slice(0, 8)}...{event.pubkey.slice(-8)}
+								{event.pubkey.slice(0, 4)}...{event.pubkey.slice(-4)}
 							</Link>
 						</div>
 						<div className='text-sm text-gray-500 dark:text-gray-400'>
@@ -45,7 +66,8 @@ export const Timeline: React.FC = () => {
 					</>
 				</div>
 			))}
-			{events.length === 0 && (
+			<div ref={observerRef} className='h-10' />
+			{displayEvents.length === 0 && (
 				<div className='text-center text-gray-500 dark:text-gray-400 py-8'>
 					No posts yet. Be the first to post!
 				</div>
