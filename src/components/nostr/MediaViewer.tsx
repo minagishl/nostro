@@ -37,11 +37,9 @@ const MediaItem: React.FC<MediaItemProps> = ({
 }) => {
 	const elementRef = React.useRef<HTMLDivElement>(null);
 	const [isVisible, setIsVisible] = React.useState(false);
-	const [isItemLoading, setIsItemLoading] = React.useState(true);
 
 	React.useEffect(() => {
 		const handleLoad = () => {
-			setIsItemLoading(false);
 			onLoad();
 		};
 		if (isVisible || isExpanded) {
