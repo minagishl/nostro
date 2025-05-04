@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 
 interface ImageViewerProps {
-	url: string;
+	urls: string[];
 }
 
-export const ImageViewer: React.FC<ImageViewerProps> = ({ url }) => {
+export const ImageViewer: React.FC<ImageViewerProps> = ({ urls }) => {
+	if (!urls || urls.length === 0) return null;
 	const [isExpanded, setIsExpanded] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [hasError, setHasError] = useState(false);
@@ -44,9 +45,8 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ url }) => {
 		}
 	};
 
-	if (!isValidImageUrl(url)) {
-		return null;
-	}
+	const validUrls = urls.filter(isValidImageUrl);
+	if (validUrls.length === 0) return null;
 
 	if (isExpanded) {
 		return (
@@ -72,7 +72,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ url }) => {
 						</svg>
 					</button>
 					<img
-						src={url}
+						src={validUrls[0]}
 						alt='Full size'
 						className='w-full h-full object-contain'
 						onLoad={handleLoad}
@@ -90,25 +90,73 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ url }) => {
 	}
 
 	return (
-		<div className='mt-2 relative'>
-			{isLoading && (
-				<div className='absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg'>
-					<div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500'></div>
+		<div className='mt-2 grid gap-2'>
+			{validUrls.length === 1 && (
+				<div className='relative'>
+					{isLoading && (
+						<div className='absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg'>
+							<div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500'></div>
+						</div>
+					)}
+					{hasError ? (
+						<div className='p-4 text-sm text-red-500 bg-red-100 dark:bg-red-900 dark:text-red-300 rounded-lg'>
+							Failed to load image
+						</div>
+					) : (
+						<img
+							src={validUrls[0]}
+							alt='Post attachment'
+							className='rounded-lg max-h-64 w-full object-contain cursor-pointer hover:opacity-90 bg-black'
+							onClick={toggleExpand}
+							onLoad={handleLoad}
+							onError={handleError}
+						/>
+					)}
 				</div>
 			)}
-			{hasError ? (
-				<div className='p-4 text-sm text-red-500 bg-red-100 dark:bg-red-900 dark:text-red-300 rounded-lg'>
-					Failed to load image
+
+			{validUrls.length > 1 && (
+				<div className='grid gap-2'>
+					{validUrls.length % 2 === 0 ? (
+						<div className='grid grid-cols-2 gap-2'>
+							{validUrls.map((url, index) => (
+								<img
+									key={index}
+									src={url}
+									alt={`Post attachment ${index + 1}`}
+									className='rounded-lg h-64 w-full object-cover cursor-pointer hover:opacity-90 bg-black'
+									onClick={toggleExpand}
+									onLoad={handleLoad}
+									onError={handleError}
+								/>
+							))}
+						</div>
+					) : (
+						<>
+							<div className='grid grid-cols-2 gap-2'>
+								{validUrls.slice(0, validUrls.length - 1).map((url, index) => (
+									<img
+										key={index}
+										src={url}
+										alt={`Post attachment ${index + 1}`}
+										className='rounded-lg h-64 w-full object-cover cursor-pointer hover:opacity-90 bg-black'
+										onClick={toggleExpand}
+										onLoad={handleLoad}
+										onError={handleError}
+									/>
+								))}
+							</div>
+							<img
+								src={validUrls[validUrls.length - 1]}
+								alt={`Post attachment ${validUrls.length}`}
+								className='rounded-lg h-64 w-full object-cover cursor-pointer hover:opacity-90 bg-black'
+								onClick={toggleExpand}
+								onLoad={handleLoad}
+								onError={handleError}
+							/>
+						</>
+					)}
 				</div>
-			) : (
-				<img
-					src={url}
-					alt='Post attachment'
-					className='rounded-lg max-h-64 w-full object-contain cursor-pointer hover:opacity-90 bg-black'
-					onClick={toggleExpand}
-					onLoad={handleLoad}
-					onError={handleError}
-				/>
 			)}
 		</div>
 	);
