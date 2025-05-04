@@ -36,7 +36,7 @@ export const Timeline: React.FC = () => {
 					</div>
 					<>
 						<div
-							className='text-gray-900 dark:text-white whitespace-pre-wrap'
+							className='text-gray-900 dark:text-white whitespace-pre-wrap break-words overflow-wrap-anywhere'
 							dangerouslySetInnerHTML={{ __html: formatContent(event.content) }}
 						/>
 						{extractImageUrls(event.content).length > 0 && (
