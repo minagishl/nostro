@@ -6,11 +6,7 @@ export const PostForm: React.FC = () => {
 	const [content, setContent] = useState('');
 	const { publicKey, generateKeys, publishNote, loadProfile, profiles } = useNostrStore();
 
-	useEffect(() => {
-		if (publicKey) {
-			loadProfile(publicKey);
-		}
-	}, [publicKey, loadProfile]);
+	// Remove the useEffect for auto-loading profile
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
