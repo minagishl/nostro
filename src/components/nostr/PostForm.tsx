@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNostrStore } from '@/store/useNostrStore';
 import Link from 'next/link';
 
 export const PostForm: React.FC = () => {
 	const [content, setContent] = useState('');
-	const { publicKey, generateKeys, publishNote, loadProfile, profiles } = useNostrStore();
-
-	// Remove the useEffect for auto-loading profile
+	const { publicKey, generateKeys, publishNote, profiles } = useNostrStore();
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
