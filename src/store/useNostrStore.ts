@@ -1,9 +1,8 @@
 import { create } from 'zustand';
 import { SimplePool, getEventHash, getPublicKey, type Event, type Filter } from 'nostr-tools';
-import { randomBytes } from 'crypto';
 
-const generatePrivateKey = (): Uint8Array => {
-	return Uint8Array.from(randomBytes(32));
+const generatePrivateKey = async (): Promise<Uint8Array> => {
+	return crypto.getRandomValues(new Uint8Array(32));
 };
 
 const bytesToHex = (bytes: Uint8Array): string => {
@@ -13,11 +12,7 @@ const bytesToHex = (bytes: Uint8Array): string => {
 };
 
 const hexToBytes = (hex: string): Uint8Array => {
-	const bytes = new Uint8Array(hex.length / 2);
-	for (let i = 0; i < hex.length; i += 2) {
-		bytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);
-	}
-	return bytes;
+	return new Uint8Array(hex.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || []);
 };
 
 interface ProfileMetadata {
@@ -36,7 +31,7 @@ interface NostrState {
 	searchResults: Event[];
 	profiles: Record<string, ProfileMetadata>;
 	nip05ToPubkey: Record<string, string>;
-	generateKeys: () => void;
+	generateKeys: () => Promise<void>;
 	setKeys: (privateKey: string) => void;
 	publishNote: (content: string) => Promise<void>;
 	loadEvents: () => Promise<void>;
@@ -106,8 +101,8 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 	profiles: {},
 	nip05ToPubkey: {},
 
-	generateKeys: () => {
-		const privateKeyBytes = generatePrivateKey();
+	generateKeys: async () => {
+		const privateKeyBytes = await generatePrivateKey();
 		const privateKey = bytesToHex(privateKeyBytes);
 		const publicKey = getPublicKey(privateKeyBytes);
 		set({ privateKey, publicKey });
