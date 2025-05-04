@@ -28,8 +28,13 @@ export const Profile: React.FC<ProfileProps> = ({ pubkey }) => {
 						/>
 					)}
 					<div>
-						<h2 className='text-xl font-bold text-gray-900 dark:text-white'>
+						<h2 className='text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2'>
 							{profile?.name || 'Anonymous'}
+							{profile?.nip05 && (
+								<span className='text-sm font-normal text-blue-500' title='Verified name'>
+									✓ {profile.nip05}
+								</span>
+							)}
 						</h2>
 						{profile?.about && (
 							<p className='text-gray-600 dark:text-gray-300 mt-2'>{profile.about}</p>

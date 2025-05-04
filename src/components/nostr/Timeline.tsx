@@ -3,7 +3,13 @@ import { useNostrStore } from '@/store/useNostrStore';
 import Link from 'next/link';
 
 export const Timeline: React.FC = () => {
-	const { events, loadEvents } = useNostrStore();
+	const { events, loadEvents, profiles, loadProfile } = useNostrStore();
+
+	useEffect(() => {
+		events.forEach((event) => {
+			loadProfile(event.pubkey);
+		});
+	}, [events, loadProfile]);
 
 	useEffect(() => {
 		loadEvents();
@@ -20,12 +26,18 @@ export const Timeline: React.FC = () => {
 			{events.map((event) => (
 				<div key={event.id} className='bg-white dark:bg-gray-800 rounded-lg shadow p-4'>
 					<div className='flex justify-between items-start mb-2'>
-						<Link
-							href={`/profile/${event.pubkey}`}
-							className='font-mono text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400'
-						>
-							{event.pubkey.slice(0, 8)}...{event.pubkey.slice(-8)}
-						</Link>
+						<div className='flex flex-col'>
+							<Link
+								href={`/profile/${event.pubkey}`}
+								className='text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400'
+							>
+								{profiles[event.pubkey]?.name ||
+									event.pubkey.slice(0, 8) + '...' + event.pubkey.slice(-8)}
+							</Link>
+							{profiles[event.pubkey]?.nip05 && (
+								<span className='text-xs text-blue-500'>✓ {profiles[event.pubkey]?.nip05}</span>
+							)}
+						</div>
 						<div className='text-sm text-gray-500 dark:text-gray-400'>
 							{formatDate(event.created_at)}
 						</div>

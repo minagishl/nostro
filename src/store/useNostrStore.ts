@@ -24,6 +24,21 @@ interface ProfileMetadata {
 	name?: string;
 	about?: string;
 	picture?: string;
+	nip05?: string;
+}
+
+async function verifyNip05(identifier: string, pubkey: string): Promise<boolean> {
+	try {
+		const [username, domain] = identifier.split('@');
+		if (!username || !domain) return false;
+
+		const response = await fetch(`https://${domain}/.well-known/nostr.json?name=${username}`);
+		const data = await response.json();
+		return data?.names?.[username] === pubkey;
+	} catch (e) {
+		console.error('Failed to verify NIP-05:', e);
+		return false;
+	}
 }
 
 interface NostrState {
@@ -109,6 +124,10 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 			const profileEvent = events[0];
 			try {
 				const metadata: ProfileMetadata = JSON.parse(profileEvent.content);
+				if (metadata.nip05) {
+					const isVerified = await verifyNip05(metadata.nip05, pubkey);
+					metadata.nip05 = isVerified ? metadata.nip05 : undefined;
+				}
 				set({ profiles: { ...profiles, [pubkey]: metadata } });
 			} catch (e) {
 				console.error('Failed to parse profile metadata:', e);
