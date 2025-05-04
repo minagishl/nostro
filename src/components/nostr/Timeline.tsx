@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useNostrStore } from '@/store/useNostrStore';
 import Link from 'next/link';
-import { ImageViewer } from './ImageViewer';
-import { extractImageUrls, formatContent } from '@/utils/content';
+import { MediaViewer } from './MediaViewer';
+import { extractMediaUrls, formatContent } from '@/utils/content';
 
 export const Timeline: React.FC = () => {
 	const { events, loadEvents, profiles } = useNostrStore();
@@ -39,8 +39,8 @@ export const Timeline: React.FC = () => {
 							className='text-gray-900 dark:text-white whitespace-pre-wrap break-words overflow-wrap-anywhere'
 							dangerouslySetInnerHTML={{ __html: formatContent(event.content) }}
 						/>
-						{extractImageUrls(event.content).length > 0 && (
-							<ImageViewer urls={extractImageUrls(event.content)} />
+						{extractMediaUrls(event.content).length > 0 && (
+							<MediaViewer urls={extractMediaUrls(event.content)} />
 						)}
 					</>
 				</div>

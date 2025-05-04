@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useNostrStore } from '@/store/useNostrStore';
 import type { Event } from 'nostr-tools';
-import { ImageViewer } from './ImageViewer';
-import { extractImageUrls, formatContent } from '@/utils/content';
+import { MediaViewer } from './MediaViewer';
+import { extractMediaUrls, formatContent } from '@/utils/content';
 
 interface ProfileProps {
 	pubkey: string;
@@ -76,8 +76,8 @@ export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) =
 								className='text-gray-900 dark:text-white whitespace-pre-wrap'
 								dangerouslySetInnerHTML={{ __html: formatContent(event.content) }}
 							/>
-							{extractImageUrls(event.content).length > 0 && (
-								<ImageViewer urls={extractImageUrls(event.content)} />
+							{extractMediaUrls(event.content).length > 0 && (
+								<MediaViewer urls={extractMediaUrls(event.content)} />
 							)}
 						</>
 					</div>
