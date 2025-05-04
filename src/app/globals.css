@@ -9,3 +9,7 @@ a {
 a:hover {
 	color: #2563eb; /* Tailwind blue-600 */
 }
+
+a:has(> h1) {
+	text-decoration: none;
+}
