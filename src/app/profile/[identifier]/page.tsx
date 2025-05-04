@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Profile } from '@/components/nostr/Profile';
 import { useNostrStore } from '@/store/useNostrStore';
 
-export default function ProfilePage({ params }: { params: { identifier: string } }) {
+export default function ProfilePage(props: { params: Promise<{ identifier: string }> }) {
+	const params = use(props.params);
 	const [pubkey, setPubkey] = useState<string | null>(null);
 	const lookupNip05 = useNostrStore((state) => state.lookupNip05);
 
