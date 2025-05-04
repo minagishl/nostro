@@ -142,8 +142,18 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 			}
 		};
 
+		// Control body scroll
+		if (isExpanded) {
+			document.body.style.overflow = 'hidden';
+		} else {
+			document.body.style.overflow = '';
+		}
+
 		window.addEventListener('keydown', handleKeyDown);
-		return () => window.removeEventListener('keydown', handleKeyDown);
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown);
+			document.body.style.overflow = '';
+		};
 	}, [isExpanded]);
 
 	const validUrls = urls.filter((url) => getMediaType(url) !== 'unknown');
