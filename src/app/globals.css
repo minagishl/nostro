@@ -13,3 +13,7 @@ a:hover {
 a:has(> h1) {
 	text-decoration: none;
 }
+
+* {
+	overscroll-behavior-y: none !important;
+}
