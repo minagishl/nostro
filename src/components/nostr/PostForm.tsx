@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNostrStore } from '@/store/useNostrStore';
+import Link from 'next/link';
 
 export const PostForm: React.FC = () => {
 	const [content, setContent] = useState('');
-	const { publicKey, generateKeys, publishNote } = useNostrStore();
+	const { publicKey, generateKeys, publishNote, loadProfile, profiles } = useNostrStore();
+
+	useEffect(() => {
+		if (publicKey) {
+			loadProfile(publicKey);
+		}
+	}, [publicKey, loadProfile]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -15,6 +22,23 @@ export const PostForm: React.FC = () => {
 
 	return (
 		<div className='bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6'>
+			{publicKey && profiles[publicKey] && (
+				<div className='flex items-center space-x-4 mb-4'>
+					{profiles[publicKey].picture && (
+						<img
+							src={profiles[publicKey].picture}
+							alt={profiles[publicKey].name || 'Profile'}
+							className='w-10 h-10 rounded-full object-cover'
+						/>
+					)}
+					<Link
+						href={`/profile/${publicKey}`}
+						className='text-gray-900 dark:text-white hover:text-blue-500 dark:hover:text-blue-400'
+					>
+						{profiles[publicKey].name || 'Anonymous'}
+					</Link>
+				</div>
+			)}
 			{!publicKey ? (
 				<button
 					onClick={generateKeys}

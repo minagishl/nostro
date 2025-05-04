@@ -20,27 +20,25 @@ const hexToBytes = (hex: string): Uint8Array => {
 	return bytes;
 };
 
+interface ProfileMetadata {
+	name?: string;
+	about?: string;
+	picture?: string;
+}
+
 interface NostrState {
 	pool: SimplePool;
 	publicKey: string | null;
 	privateKey: string | null;
 	relays: string[];
 	events: Event[];
+	profiles: Record<string, ProfileMetadata>;
 	generateKeys: () => void;
 	setKeys: (privateKey: string) => void;
 	publishNote: (content: string) => Promise<void>;
 	loadEvents: () => Promise<void>;
+	loadProfile: (pubkey: string) => Promise<void>;
 }
-
-type NostrEvent = Event & {
-	content: string;
-	created_at: number;
-	id: string;
-	kind: number;
-	pubkey: string;
-	sig: string;
-	tags: string[][];
-};
 
 export const useNostrStore = create<NostrState>((set, get) => ({
 	pool: new SimplePool(),
@@ -48,6 +46,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 	privateKey: null,
 	relays: ['wss://relay.damus.io', 'wss://relay.nostr.band', 'wss://nos.lol'],
 	events: [],
+	profiles: {},
 
 	generateKeys: () => {
 		const privateKeyBytes = generatePrivateKey();
@@ -93,5 +92,27 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 
 		const events = await pool.querySync(relays, filter);
 		set({ events: events.sort((a, b) => b.created_at - a.created_at) });
+	},
+
+	loadProfile: async (pubkey: string) => {
+		const { pool, relays, profiles } = get();
+		if (profiles[pubkey]) return;
+
+		const filter: Filter = {
+			authors: [pubkey],
+			kinds: [0],
+			limit: 1,
+		};
+
+		const events = await pool.querySync(relays, filter);
+		if (events.length > 0) {
+			const profileEvent = events[0];
+			try {
+				const metadata: ProfileMetadata = JSON.parse(profileEvent.content);
+				set({ profiles: { ...profiles, [pubkey]: metadata } });
+			} catch (e) {
+				console.error('Failed to parse profile metadata:', e);
+			}
+		}
 	},
 }));

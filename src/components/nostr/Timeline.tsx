@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNostrStore } from '@/store/useNostrStore';
+import Link from 'next/link';
 
 export const Timeline: React.FC = () => {
 	const { events, loadEvents } = useNostrStore();
@@ -19,9 +20,12 @@ export const Timeline: React.FC = () => {
 			{events.map((event) => (
 				<div key={event.id} className='bg-white dark:bg-gray-800 rounded-lg shadow p-4'>
 					<div className='flex justify-between items-start mb-2'>
-						<div className='font-mono text-sm text-gray-500 dark:text-gray-400'>
+						<Link
+							href={`/profile/${event.pubkey}`}
+							className='font-mono text-sm text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400'
+						>
 							{event.pubkey.slice(0, 8)}...{event.pubkey.slice(-8)}
-						</div>
+						</Link>
 						<div className='text-sm text-gray-500 dark:text-gray-400'>
 							{formatDate(event.created_at)}
 						</div>
