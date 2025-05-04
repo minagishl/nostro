@@ -7,6 +7,17 @@ interface ProfileProps {
 	displayIdentifier?: string;
 }
 
+const formatDisplayIdentifier = (identifier: string | undefined, pubkey: string): string => {
+	if (!identifier) {
+		return `${pubkey.slice(0, 8)}...${pubkey.slice(-8)}`;
+	}
+	// If it's just a domain (e.g., "_@example.com"), show only the domain
+	if (identifier.startsWith('_@')) {
+		return identifier.slice(2);
+	}
+	return identifier;
+};
+
 export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) => {
 	const { profiles, loadProfile, events } = useNostrStore();
 
@@ -33,7 +44,7 @@ export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) =
 							{profile?.name || 'Anonymous'}
 							{profile?.nip05 && (
 								<span className='text-sm font-normal text-blue-500' title='Verified name'>
-									✓ {profile.nip05}
+									✓ {formatDisplayIdentifier(profile.nip05, pubkey)}
 								</span>
 							)}
 						</h2>
@@ -41,7 +52,7 @@ export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) =
 							<p className='text-gray-600 dark:text-gray-300 mt-2'>{profile.about}</p>
 						)}
 						<div className='text-sm text-gray-500 dark:text-gray-400 mt-2'>
-							<code>{displayIdentifier || `${pubkey.slice(0, 8)}...${pubkey.slice(-8)}`}</code>
+							<code>{formatDisplayIdentifier(displayIdentifier, pubkey)}</code>
 						</div>
 					</div>
 				</div>

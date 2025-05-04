@@ -150,8 +150,12 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 				if (metadata.nip05) {
 					const isVerified = await verifyNip05(metadata.nip05, pubkey);
 					if (isVerified) {
-						metadata.nip05 = metadata.nip05;
-						set({ nip05ToPubkey: { ...nip05ToPubkey, [metadata.nip05]: pubkey } });
+						// Format the NIP-05 identifier similarly to display
+						const formattedNip05 = metadata.nip05.startsWith('_@')
+							? metadata.nip05.slice(2)
+							: metadata.nip05;
+						metadata.nip05 = formattedNip05;
+						set({ nip05ToPubkey: { ...nip05ToPubkey, [formattedNip05]: pubkey } });
 					} else {
 						metadata.nip05 = undefined;
 					}
