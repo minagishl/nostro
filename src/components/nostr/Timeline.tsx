@@ -35,9 +35,10 @@ export const Timeline: React.FC = () => {
 						</div>
 					</div>
 					<>
-						<div className='text-gray-900 dark:text-white whitespace-pre-wrap'>
-							{formatContent(event.content)}
-						</div>
+						<div
+							className='text-gray-900 dark:text-white whitespace-pre-wrap'
+							dangerouslySetInnerHTML={{ __html: formatContent(event.content) }}
+						/>
 						{extractImageUrls(event.content).map((url, index) => (
 							<ImageViewer key={`${event.id}-img-${index}`} url={url} />
 						))}
