@@ -121,8 +121,6 @@ const MediaItem: React.FC<MediaItemProps> = ({
 };
 
 export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
-	if (!urls || urls.length === 0) return null;
-
 	const [isExpanded, setIsExpanded] = useState(false);
 
 	const toggleExpand = () => {
@@ -149,6 +147,8 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 			document.body.style.overflow = '';
 		};
 	}, [isExpanded]);
+
+	if (!urls || urls.length === 0) return null;
 
 	const validUrls = urls.filter((url) => getMediaType(url) !== 'unknown');
 	if (validUrls.length === 0) return null;
