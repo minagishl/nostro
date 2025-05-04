@@ -35,5 +35,16 @@ export function formatContent(content: string): string {
 	formattedContent = convertMentions(formattedContent);
 	formattedContent = convertUrls(formattedContent);
 
+	// Convert line breaks to <br> tags
+	formattedContent = formattedContent
+		.replace(/\r\n/g, '\n') // Normalize line endings
+		.replace(/\n\n+/g, '</p><p>') // Multiple line breaks become paragraphs
+		.replace(/\n/g, '<br>'); // Single line breaks become <br>
+
+	// Wrap in paragraph tags if it contains paragraph breaks
+	if (formattedContent.includes('</p><p>')) {
+		formattedContent = `<p>${formattedContent}</p>`;
+	}
+
 	return formattedContent.trim();
 }
