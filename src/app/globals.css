@@ -1,1 +1,11 @@
 @import 'tailwindcss';
+
+/* Global link styles */
+a {
+	color: #3b82f6; /* Tailwind blue-500 */
+	text-decoration: underline;
+}
+
+a:hover {
+	color: #2563eb; /* Tailwind blue-600 */
+}
