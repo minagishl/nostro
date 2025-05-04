@@ -1,11 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNostrStore } from '@/store/useNostrStore';
+import { type Event as NostrEvent } from 'nostr-tools';
 import Link from 'next/link';
 import { MediaViewer } from './MediaViewer';
 import { extractMediaUrls, formatContent } from '@/utils/content';
 
-export const Timeline: React.FC = () => {
-	const { events, loadEvents } = useNostrStore();
+interface TimelineProps {
+	events?: NostrEvent[];
+}
+
+export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
+	const { events: storeEvents, loadEvents } = useNostrStore();
+	const events = propEvents || storeEvents;
 	const [displayCount, setDisplayCount] = useState(10);
 	const observerRef = useRef<HTMLDivElement>(null);
 	const displayEvents = events.slice(0, displayCount);

@@ -42,6 +42,7 @@ interface NostrState {
 	loadUserEvents: (pubkey: string) => Promise<void>;
 	loadProfile: (pubkey: string) => Promise<void>;
 	lookupNip05: (identifier: string) => Promise<string | null>;
+	searchEvents: (query: string) => Promise<void>;
 }
 
 async function verifyNip05(identifier: string, pubkey: string): Promise<boolean> {
@@ -209,5 +210,17 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 		}
 
 		return null;
+	},
+
+	searchEvents: async (query: string) => {
+		const { pool, relays } = get();
+		const filter: Filter = {
+			kinds: [1],
+			search: query,
+			limit: 100,
+		};
+
+		const events = await pool.querySync(relays, filter);
+		set({ events: events.sort((a, b) => b.created_at - a.created_at) });
 	},
 }));
