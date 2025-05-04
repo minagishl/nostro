@@ -17,18 +17,21 @@ export default function Search() {
 	};
 
 	return (
-		<div className='w-full p-4'>
-			<form onSubmit={handleSubmit} className='flex gap-2'>
+		<div className='w-full'>
+			<form
+				onSubmit={handleSubmit}
+				className='flex gap-2 rounded-lg shadow p-4 mb-6 bg-white dark:bg-gray-800'
+			>
 				<input
 					type='text'
 					value={query}
 					onChange={(e) => setQuery(e.target.value)}
 					placeholder='Search posts...'
-					className='flex-1 p-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800'
+					className='flex-1 p-2 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500'
 				/>
 				<button
 					type='submit'
-					className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
+					className='px-4 py-2 bg-blue-500 text-white dark:text-white rounded hover:bg-blue-600'
 				>
 					Search
 				</button>
