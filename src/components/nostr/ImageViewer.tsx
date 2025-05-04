@@ -104,7 +104,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ url }) => {
 				<img
 					src={url}
 					alt='Post attachment'
-					className='rounded-lg max-h-64 w-full object-contain cursor-pointer hover:opacity-90'
+					className='rounded-lg max-h-64 w-full object-contain cursor-pointer hover:opacity-90 bg-black'
 					onClick={toggleExpand}
 					onLoad={handleLoad}
 					onError={handleError}
