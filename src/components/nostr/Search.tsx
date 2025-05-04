@@ -7,7 +7,7 @@ import { Timeline } from './Timeline';
 export default function Search() {
 	const [query, setQuery] = useState('');
 	const searchEvents = useNostrStore((state) => state.searchEvents);
-	const events = useNostrStore((state) => state.events);
+	const searchResults = useNostrStore((state) => state.searchResults);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -37,8 +37,8 @@ export default function Search() {
 				</button>
 			</form>
 			<div className='mt-4'>
-				{events.length > 0 ? (
-					<Timeline events={events} />
+				{searchResults.length > 0 ? (
+					<Timeline events={searchResults} />
 				) : (
 					<p className='text-gray-500 dark:text-gray-400 text-center'>No results found</p>
 				)}

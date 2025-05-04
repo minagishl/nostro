@@ -33,6 +33,7 @@ interface NostrState {
 	privateKey: string | null;
 	relays: string[];
 	events: Event[];
+	searchResults: Event[];
 	profiles: Record<string, ProfileMetadata>;
 	nip05ToPubkey: Record<string, string>;
 	generateKeys: () => void;
@@ -101,6 +102,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 		'wss://nrelay-jp.c-stellar.net',
 	],
 	events: [],
+	searchResults: [],
 	profiles: {},
 	nip05ToPubkey: {},
 
@@ -221,6 +223,6 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 		};
 
 		const events = await pool.querySync(relays, filter);
-		set({ events: events.sort((a, b) => b.created_at - a.created_at) });
+		set({ searchResults: events.sort((a, b) => b.created_at - a.created_at) });
 	},
 }));
