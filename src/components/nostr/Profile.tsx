@@ -52,7 +52,10 @@ export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) =
 							)}
 						</h2>
 						{profile?.about && (
-							<p className='text-gray-600 dark:text-gray-300 mt-2'>{profile.about}</p>
+							<p
+								className='text-gray-600 dark:text-gray-300 mt-2'
+								dangerouslySetInnerHTML={{ __html: formatContent(profile.about) }}
+							/>
 						)}
 						<div className='text-sm text-gray-500 dark:text-gray-400 mt-2'>
 							<code>{formatDisplayIdentifier(displayIdentifier, pubkey)}</code>
