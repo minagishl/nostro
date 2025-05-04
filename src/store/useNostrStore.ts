@@ -63,10 +63,14 @@ async function lookupNip05Pubkey(identifier: string): Promise<string | null> {
 		let username: string;
 		let domain: string;
 
+		// Skip npub identifiers
+		if (identifier.startsWith('npub')) return null;
+
 		if (identifier.includes('@')) {
 			[username, domain] = identifier.split('@');
 			if (!username || !domain) return null;
 		} else {
+			// For domain-only identifiers, use '_' as username
 			username = '_';
 			domain = identifier;
 		}
