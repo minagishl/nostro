@@ -27,6 +27,22 @@ interface ProfileMetadata {
 	nip05?: string;
 }
 
+interface NostrState {
+	pool: SimplePool;
+	publicKey: string | null;
+	privateKey: string | null;
+	relays: string[];
+	events: Event[];
+	profiles: Record<string, ProfileMetadata>;
+	nip05ToPubkey: Record<string, string>;
+	generateKeys: () => void;
+	setKeys: (privateKey: string) => void;
+	publishNote: (content: string) => Promise<void>;
+	loadEvents: () => Promise<void>;
+	loadProfile: (pubkey: string) => Promise<void>;
+	lookupNip05: (identifier: string) => Promise<string | null>;
+}
+
 async function verifyNip05(identifier: string, pubkey: string): Promise<boolean> {
 	try {
 		const [username, domain] = identifier.split('@');
@@ -41,18 +57,24 @@ async function verifyNip05(identifier: string, pubkey: string): Promise<boolean>
 	}
 }
 
-interface NostrState {
-	pool: SimplePool;
-	publicKey: string | null;
-	privateKey: string | null;
-	relays: string[];
-	events: Event[];
-	profiles: Record<string, ProfileMetadata>;
-	generateKeys: () => void;
-	setKeys: (privateKey: string) => void;
-	publishNote: (content: string) => Promise<void>;
-	loadEvents: () => Promise<void>;
-	loadProfile: (pubkey: string) => Promise<void>;
+async function lookupNip05Pubkey(identifier: string): Promise<string | null> {
+	try {
+		let username, domain;
+		if (identifier.includes('@')) {
+			[username, domain] = identifier.split('@');
+		} else {
+			domain = identifier;
+			username = '_';
+		}
+		if (!domain) return null;
+
+		const response = await fetch(`https://${domain}/.well-known/nostr.json?name=${username}`);
+		const data = await response.json();
+		return data?.names?.[username] || null;
+	} catch (e) {
+		console.error('Failed to lookup NIP-05:', e);
+		return null;
+	}
 }
 
 export const useNostrStore = create<NostrState>((set, get) => ({
@@ -62,6 +84,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 	relays: ['wss://relay.damus.io', 'wss://relay.nostr.band', 'wss://nos.lol'],
 	events: [],
 	profiles: {},
+	nip05ToPubkey: {},
 
 	generateKeys: () => {
 		const privateKeyBytes = generatePrivateKey();
@@ -110,7 +133,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 	},
 
 	loadProfile: async (pubkey: string) => {
-		const { pool, relays, profiles } = get();
+		const { pool, relays, profiles, nip05ToPubkey } = get();
 		if (profiles[pubkey]) return;
 
 		const filter: Filter = {
@@ -126,12 +149,32 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 				const metadata: ProfileMetadata = JSON.parse(profileEvent.content);
 				if (metadata.nip05) {
 					const isVerified = await verifyNip05(metadata.nip05, pubkey);
-					metadata.nip05 = isVerified ? metadata.nip05 : undefined;
+					if (isVerified) {
+						metadata.nip05 = metadata.nip05;
+						set({ nip05ToPubkey: { ...nip05ToPubkey, [metadata.nip05]: pubkey } });
+					} else {
+						metadata.nip05 = undefined;
+					}
 				}
 				set({ profiles: { ...profiles, [pubkey]: metadata } });
 			} catch (e) {
 				console.error('Failed to parse profile metadata:', e);
 			}
 		}
+	},
+
+	lookupNip05: async (identifier: string): Promise<string | null> => {
+		const { nip05ToPubkey } = get();
+		if (nip05ToPubkey[identifier]) {
+			return nip05ToPubkey[identifier];
+		}
+
+		const pubkey = await lookupNip05Pubkey(identifier);
+		if (pubkey) {
+			set({ nip05ToPubkey: { ...nip05ToPubkey, [identifier]: pubkey } });
+			return pubkey;
+		}
+
+		return null;
 	},
 }));
