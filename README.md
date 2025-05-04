@@ -34,8 +34,8 @@ pnpm dev
 src/
 ├── app/           # Next.js app directory
 ├── components/    # React components
-├── store/        # State management
-└── utils/        # Utility functions
+├── store/         # State management
+└── utils/         # Utility functions
 ```
 
 ## Note
