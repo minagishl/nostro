@@ -1,4 +1,5 @@
 import { Layout } from '@/components/layout/Layout';
+import Link from 'next/link';
 
 export default function NotFound() {
 	return (
@@ -8,9 +9,9 @@ export default function NotFound() {
 				<p className='text-gray-600 dark:text-gray-400 mb-6'>
 					The profile you&apos;re looking for doesn&apos;t exist or couldn&apos;t be found.
 				</p>
-				<a href='/' className='text-blue-500 hover:text-blue-600 dark:hover:text-blue-400'>
+				<Link href='/' className='text-blue-500 hover:text-blue-600 dark:hover:text-blue-400'>
 					Return to Home
-				</a>
+				</Link>
 			</div>
 		</Layout>
 	);
