@@ -1,5 +1,7 @@
 'use client';
 
+export const runtime = 'edge';
+
 import { useEffect, useState, use } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { Profile } from '@/components/nostr/Profile';
