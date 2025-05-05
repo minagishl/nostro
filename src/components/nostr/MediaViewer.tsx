@@ -35,9 +35,11 @@ const MediaItem: React.FC<MediaItemProps> = ({
 	onClick,
 	isExpanded = false,
 }) => {
+	const [hasError, setHasError] = React.useState(false);
 	const elementRef = React.useRef<HTMLDivElement>(null);
 	const [isVisible, setIsVisible] = React.useState(false);
 
+	// First useEffect for media loading
 	React.useEffect(() => {
 		const handleLoad = () => {
 			onLoad();
@@ -46,7 +48,10 @@ const MediaItem: React.FC<MediaItemProps> = ({
 			if (type === 'image') {
 				const img = new Image();
 				img.onload = handleLoad;
-				img.onerror = onError;
+				img.onerror = () => {
+					setHasError(true);
+					onError();
+				};
 				img.src = url;
 			} else if (type === 'video') {
 				const video = document.createElement('video');
@@ -57,6 +62,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
 		}
 	}, [isVisible, isExpanded, type, url, onLoad, onError]);
 
+	// Second useEffect for intersection observer
 	React.useEffect(() => {
 		const observer = new IntersectionObserver(
 			(entries) => {
@@ -74,6 +80,15 @@ const MediaItem: React.FC<MediaItemProps> = ({
 
 		return () => observer.disconnect();
 	}, []);
+
+	// Render logic
+	if (hasError) {
+		return (
+			<div className='p-4 text-sm text-red-500 bg-red-100 dark:bg-red-900 dark:text-red-300 rounded-lg'>
+				Failed to load media
+			</div>
+		);
+	}
 
 	if (!isVisible && !isExpanded) {
 		return (
@@ -96,7 +111,10 @@ const MediaItem: React.FC<MediaItemProps> = ({
 				}
 				onClick={onClick}
 				onLoad={onLoad}
-				onError={onError}
+				onError={() => {
+					setHasError(true);
+					onError();
+				}}
 			/>
 		);
 	}
