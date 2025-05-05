@@ -1,5 +1,6 @@
 export function extractMediaUrls(content: string): string[] {
-	const urlRegex = /(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|webp|mp4|webm|mov))(?:\s|$)/gi;
+	const urlRegex =
+		/(https?:\/\/[^\s"']+\.(?:jpg|jpeg|png|gif|webp|mp4|webm|mov)(\?[^\s"']*)?)(?:\s|$)/gi;
 	return Array.from(content.matchAll(urlRegex)).map((match) => match[1]);
 }
 

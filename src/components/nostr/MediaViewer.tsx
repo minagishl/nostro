@@ -8,7 +8,9 @@ type MediaType = 'image' | 'video' | 'unknown';
 
 const getMediaType = (url: string): MediaType => {
 	try {
-		const parsedUrl = new URL(url);
+		// Remove query parameters from URL before parsing
+		const urlWithoutQuery = url.split('?')[0];
+		const parsedUrl = new URL(urlWithoutQuery);
 		const ext = parsedUrl.pathname.split('.').pop()?.toLowerCase();
 		if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) return 'image';
 		if (['mp4', 'webm', 'mov'].includes(ext || '')) return 'video';
