@@ -1,3 +1,5 @@
+'use client';
+
 import Search from '@/components/nostr/Search';
 import { Layout } from '@/components/layout/Layout';
 
