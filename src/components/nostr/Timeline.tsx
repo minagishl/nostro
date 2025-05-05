@@ -11,12 +11,21 @@ interface TimelineProps {
 }
 
 export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
-  const { events: storeEvents, loadEvents, loadFollowing, publicKey, repostNote } = useNostrStore();
+  const {
+    events: storeEvents,
+    loadEvents,
+    loadFollowing,
+    loadProfile,
+    profiles,
+    publicKey,
+    repostNote,
+  } = useNostrStore();
   const events = propEvents || storeEvents;
   const [displayCount, setDisplayCount] = useState(10);
   const observerRef = useRef<HTMLDivElement>(null);
   const displayEvents = events.slice(0, displayCount);
   const [replyingTo, setReplyingTo] = useState<NostrEvent | null>(null);
+  const [usernameCacheMap, setUsernameCacheMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -49,8 +58,50 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
     return () => clearInterval(interval);
   }, [loadEvents, loadFollowing, publicKey]);
 
+  useEffect(() => {
+    // This effect loads profile information and updates the username cache
+    const loadProfiles = async () => {
+      const uniquePubkeys = [...new Set(displayEvents.map((event) => event.pubkey))];
+
+      const newCache = { ...usernameCacheMap };
+
+      for (const pubkey of uniquePubkeys) {
+        // Load profile only if it doesn't exist in the cache
+        if (!usernameCacheMap[pubkey] && !profiles[pubkey]) {
+          await loadProfile(pubkey);
+        }
+
+        // Update the cache if profile information is available
+        if (profiles[pubkey] && !usernameCacheMap[pubkey]) {
+          const username = profiles[pubkey].name || `${pubkey.slice(0, 8)}...${pubkey.slice(-8)}`;
+          newCache[pubkey] = username;
+        }
+      }
+
+      // Update state only if the cache has changed
+      if (Object.keys(newCache).length > Object.keys(usernameCacheMap).length) {
+        setUsernameCacheMap(newCache);
+      }
+    };
+
+    loadProfiles();
+  }, [displayEvents, loadProfile, profiles, usernameCacheMap]);
+
   const formatDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleString();
+  };
+
+  const getUserDisplayName = (pubkey: string) => {
+    if (usernameCacheMap[pubkey]) {
+      return usernameCacheMap[pubkey];
+    }
+
+    if (profiles[pubkey]?.name) {
+      setUsernameCacheMap((prev) => ({ ...prev, [pubkey]: profiles[pubkey].name! }));
+      return profiles[pubkey].name;
+    }
+
+    return `${pubkey.slice(0, 8)}...${pubkey.slice(-8)}`;
   };
 
   return (
@@ -70,7 +121,7 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
                       href={`/profile/${event.pubkey}`}
                       className="text-[15px] font-semibold text-gray-900 no-underline hover:underline dark:text-gray-100"
                     >
-                      {event.pubkey.slice(0, 8)}...{event.pubkey.slice(-8)}
+                      {getUserDisplayName(event.pubkey)}
                     </Link>
                     <span className="text-sm text-gray-400 dark:text-gray-500">
                       {formatDate(event.created_at)}
