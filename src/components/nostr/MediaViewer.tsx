@@ -140,9 +140,15 @@ const MediaItem: React.FC<MediaItemProps> = ({
 
 export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 	const [isExpanded, setIsExpanded] = useState(false);
+	const [selectedIndex, setSelectedIndex] = useState(0);
 
 	const toggleExpand = () => {
 		setIsExpanded(!isExpanded);
+	};
+
+	const handleImageClick = (index: number) => {
+		setSelectedIndex(index);
+		toggleExpand();
 	};
 
 	useEffect(() => {
@@ -172,13 +178,13 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 	if (validUrls.length === 0) return null;
 
 	// If it's a video, do not expand
-	if (isExpanded && getMediaType(validUrls[0]) === 'image') {
+	if (isExpanded && getMediaType(validUrls[selectedIndex]) === 'image') {
 		return (
 			<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/75'>
 				<div className='relative w-screen h-screen p-8'>
 					<button
 						className='absolute top-8 right-8 text-white bg-black/50 hover:bg-black/75 rounded-full p-2'
-						onClick={toggleExpand}
+						onClick={() => toggleExpand()}
 					>
 						<svg
 							xmlns='http://www.w3.org/2000/svg'
@@ -196,7 +202,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 						</svg>
 					</button>
 					<MediaItem
-						url={validUrls[0]}
+						url={validUrls[selectedIndex]}
 						type='image'
 						onLoad={() => {}}
 						onError={() => {}}
@@ -204,7 +210,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 						isExpanded={true}
 					/>
 				</div>
-				<div className='fixed inset-0' onClick={toggleExpand} />
+				<div className='fixed inset-0' onClick={() => toggleExpand()} />
 			</div>
 		);
 	}
@@ -218,7 +224,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 						type={getMediaType(validUrls[0])}
 						onLoad={() => {}}
 						onError={() => {}}
-						onClick={getMediaType(validUrls[0]) === 'image' ? toggleExpand : () => {}}
+						onClick={getMediaType(validUrls[0]) === 'image' ? () => handleImageClick(0) : () => {}}
 					/>
 				</div>
 			)}
@@ -234,7 +240,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 									type={getMediaType(url)}
 									onLoad={() => {}}
 									onError={() => {}}
-									onClick={getMediaType(url) === 'image' ? toggleExpand : () => {}}
+									onClick={getMediaType(url) === 'image' ? () => handleImageClick(index) : () => {}}
 								/>
 							))}
 						</div>
@@ -248,7 +254,9 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 										type={getMediaType(url)}
 										onLoad={() => {}}
 										onError={() => {}}
-										onClick={getMediaType(url) === 'image' ? toggleExpand : () => {}}
+										onClick={
+											getMediaType(url) === 'image' ? () => handleImageClick(index) : () => {}
+										}
 									/>
 								))}
 							</div>
@@ -259,7 +267,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 								onError={() => {}}
 								onClick={
 									getMediaType(validUrls[validUrls.length - 1]) === 'image'
-										? toggleExpand
+										? () => handleImageClick(validUrls.length - 1)
 										: () => {}
 								}
 							/>
