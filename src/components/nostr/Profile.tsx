@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNostrStore } from '@/store/useNostrStore';
 import type { Event } from 'nostr-tools';
 import { MediaViewer } from './MediaViewer';
 import { extractMediaUrls, formatContent } from '@/utils/content';
+import { ReplyForm } from './ReplyForm';
 
 interface ProfileProps {
   pubkey: string;
@@ -53,7 +54,8 @@ const formatDisplayIdentifier = (identifier: string | undefined, pubkey: string)
 };
 
 export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) => {
-  const { profiles, loadProfile, loadUserEvents, events } = useNostrStore();
+  const { profiles, loadProfile, loadUserEvents, events, repostNote } = useNostrStore();
+  const [replyingTo, setReplyingTo] = useState<Event | null>(null);
 
   useEffect(() => {
     loadProfile(pubkey);
@@ -102,19 +104,61 @@ export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) =
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Posts</h3>
         {userEvents.map((event) => (
-          <div key={event.id} className="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-            <div className="mb-2 text-sm text-gray-500 dark:text-gray-400">
-              {new Date(event.created_at * 1000).toLocaleString()}
-            </div>
-            <>
+          <div key={event.id} className="rounded-lg bg-white shadow dark:bg-gray-800">
+            <div className="p-4">
+              <div className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                {new Date(event.created_at * 1000).toLocaleString()}
+              </div>
               <div
                 className="whitespace-pre-wrap text-gray-900 dark:text-white"
                 dangerouslySetInnerHTML={{ __html: formatContent(event.content) }}
               />
               {extractMediaUrls(event.content).length > 0 && (
-                <MediaViewer urls={extractMediaUrls(event.content)} />
+                <div className="mt-3">
+                  <MediaViewer urls={extractMediaUrls(event.content)} />
+                </div>
               )}
-            </>
+            </div>
+            <div className="flex items-center gap-4 border-t border-gray-200 px-4 py-2 dark:border-gray-700">
+              <button
+                onClick={() => setReplyingTo(event)}
+                className="flex items-center gap-2 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                </svg>
+                Reply
+              </button>
+              <button
+                onClick={() => repostNote(event)}
+                className="flex items-center gap-2 text-gray-500 hover:text-green-500 dark:text-gray-400 dark:hover:text-green-400"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M17 1l4 4-4 4" />
+                  <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                  <path d="M7 23l-4-4 4-4" />
+                  <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+                </svg>
+                Repost
+              </button>
+            </div>
+            {replyingTo?.id === event.id && (
+              <ReplyForm replyTo={event} onClose={() => setReplyingTo(null)} />
+            )}
           </div>
         ))}
         {userEvents.length === 0 && (

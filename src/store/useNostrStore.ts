@@ -46,6 +46,8 @@ interface NostrState {
   loadFollowing: () => Promise<void>;
   followUser: (pubkey: string) => Promise<void>;
   unfollowUser: (pubkey: string) => Promise<void>;
+  replyToNote: (content: string, replyTo: Event) => Promise<void>;
+  repostNote: (event: Event) => Promise<void>;
 }
 
 async function verifyNip05(identifier: string, pubkey: string): Promise<boolean> {
@@ -331,5 +333,73 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 
     const events = await pool.querySync(relays, filter);
     set({ searchResults: events.sort((a, b) => b.created_at - a.created_at) });
+  },
+
+  replyToNote: async (content: string, replyTo: Event) => {
+    const { pool, privateKey, publicKey, relays, isExtensionLogin } = get();
+    if (!publicKey) return;
+
+    const baseEvent = {
+      kind: 1,
+      pubkey: publicKey,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: [
+        ['e', replyTo.id],
+        ['p', replyTo.pubkey],
+      ],
+      content,
+    };
+
+    const unsignedEvent: Event = {
+      ...baseEvent,
+      id: getEventHash(baseEvent),
+      sig: '',
+    };
+
+    let eventToPublish = unsignedEvent;
+
+    if (isExtensionLogin) {
+      const signedEvent = await signEventWithExtension(unsignedEvent);
+      if (!signedEvent) return;
+      eventToPublish = signedEvent;
+    } else if (!privateKey) {
+      return;
+    }
+
+    await Promise.all(relays.map((relay) => pool.publish([relay], eventToPublish)));
+  },
+
+  repostNote: async (event: Event) => {
+    const { pool, privateKey, publicKey, relays, isExtensionLogin } = get();
+    if (!publicKey) return;
+
+    const baseEvent = {
+      kind: 6,
+      pubkey: publicKey,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: [
+        ['e', event.id],
+        ['p', event.pubkey],
+      ],
+      content: '',
+    };
+
+    const unsignedEvent: Event = {
+      ...baseEvent,
+      id: getEventHash(baseEvent),
+      sig: '',
+    };
+
+    let eventToPublish = unsignedEvent;
+
+    if (isExtensionLogin) {
+      const signedEvent = await signEventWithExtension(unsignedEvent);
+      if (!signedEvent) return;
+      eventToPublish = signedEvent;
+    } else if (!privateKey) {
+      return;
+    }
+
+    await Promise.all(relays.map((relay) => pool.publish([relay], eventToPublish)));
   },
 }));
