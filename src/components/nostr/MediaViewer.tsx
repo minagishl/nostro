@@ -234,10 +234,10 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
 				<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/75'>
 					<div className='relative w-screen h-screen p-8'>
 						<button
-							className='absolute top-8 right-8 text-white bg-black/50 hover:bg-black/75 rounded-full p-2'
+							className='absolute top-8 right-8 size-10 text-white bg-black/50 hover:bg-black/75 rounded-full p-2 cursor-pointer'
 							onClick={closeExpanded}
 						>
-							{/* close icon */}✕
+							✕
 						</button>
 						<MediaItem
 							url={validUrls[expandedIdx!]}
