@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { SimplePool, getEventHash, getPublicKey, type Event, type Filter } from 'nostr-tools';
+import { getPublicKeyFromExtension, signEventWithExtension } from '../utils/nostr';
 
 const generatePrivateKey = async (): Promise<Uint8Array> => {
 	return crypto.getRandomValues(new Uint8Array(32));
@@ -26,6 +27,7 @@ interface NostrState {
 	pool: SimplePool;
 	publicKey: string | null;
 	privateKey: string | null;
+	isExtensionLogin: boolean;
 	relays: string[];
 	events: Event[];
 	searchResults: Event[];
@@ -33,6 +35,7 @@ interface NostrState {
 	nip05ToPubkey: Record<string, string>;
 	generateKeys: () => Promise<void>;
 	setKeys: (privateKey: string) => void;
+	loginWithExtension: () => Promise<void>;
 	publishNote: (content: string) => Promise<void>;
 	loadEvents: () => Promise<void>;
 	loadUserEvents: (pubkey: string) => Promise<void>;
@@ -85,6 +88,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 	pool: new SimplePool(),
 	publicKey: null,
 	privateKey: null,
+	isExtensionLogin: false,
 	relays: [
 		'wss://relay.damus.io',
 		'wss://nostr.land',
@@ -114,26 +118,41 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 		set({ privateKey: privateKeyHex, publicKey });
 	},
 
-	publishNote: async (content: string) => {
-		const { pool, privateKey, publicKey, relays } = get();
-		if (!privateKey || !publicKey) return;
+	loginWithExtension: async () => {
+		const publicKey = await getPublicKeyFromExtension();
+		if (!publicKey) return;
+		set({ publicKey, privateKey: null, isExtensionLogin: true });
+	},
 
-		const event: Event = {
+	publishNote: async (content: string) => {
+		const { pool, privateKey, publicKey, relays, isExtensionLogin } = get();
+		if (!publicKey) return;
+
+		const baseEvent = {
 			kind: 1,
 			pubkey: publicKey,
 			created_at: Math.floor(Date.now() / 1000),
 			tags: [],
 			content,
-			id: getEventHash({
-				kind: 1,
-				pubkey: publicKey,
-				created_at: Math.floor(Date.now() / 1000),
-				tags: [],
-				content,
-			}),
+		};
+
+		const unsignedEvent: Event = {
+			...baseEvent,
+			id: getEventHash(baseEvent),
 			sig: '',
 		};
-		await Promise.all(relays.map((relay) => pool.publish([relay], event)));
+
+		let eventToPublish = unsignedEvent;
+
+		if (isExtensionLogin) {
+			const signedEvent = await signEventWithExtension(unsignedEvent);
+			if (!signedEvent) return;
+			eventToPublish = signedEvent;
+		} else if (!privateKey) {
+			return;
+		}
+
+		await Promise.all(relays.map((relay) => pool.publish([relay], eventToPublish)));
 	},
 
 	loadEvents: async () => {
