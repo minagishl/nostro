@@ -47,29 +47,37 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
   return (
     <div className="space-y-4">
       {displayEvents.map((event) => (
-        <div key={event.id} className="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-          <div className="mb-2 flex items-start justify-between">
-            <div className="flex flex-col">
-              <Link
-                href={`/profile/${event.pubkey}`}
-                className="text-sm text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
-              >
-                {event.pubkey.slice(0, 4)}...{event.pubkey.slice(-4)}
-              </Link>
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {formatDate(event.created_at)}
+        <div
+          key={event.id}
+          className="mb-4 rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
+        >
+          <div className="p-4">
+            <div className="flex gap-3">
+              <div className="h-12 w-12 flex-shrink-0 rounded bg-gray-200 dark:bg-gray-700" />
+              <div className="flex-1">
+                <div className="flex items-start justify-between">
+                  <Link
+                    href={`/profile/${event.pubkey}`}
+                    className="text-[15px] font-semibold text-gray-900 no-underline hover:underline dark:text-gray-100"
+                  >
+                    {event.pubkey.slice(0, 8)}...{event.pubkey.slice(-8)}
+                  </Link>
+                  <span className="text-sm text-gray-400 dark:text-gray-500">
+                    {formatDate(event.created_at)}
+                  </span>
+                </div>
+                <div
+                  className="mt-1 text-[15px] leading-relaxed break-words whitespace-pre-wrap text-gray-900 dark:text-gray-100"
+                  dangerouslySetInnerHTML={{ __html: formatContent(event.content) }}
+                />
+                {extractMediaUrls(event.content).length > 0 && (
+                  <div className="mt-3">
+                    <MediaViewer urls={extractMediaUrls(event.content)} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          <>
-            <div
-              className="overflow-wrap-anywhere break-words whitespace-pre-wrap text-gray-900 dark:text-white"
-              dangerouslySetInnerHTML={{ __html: formatContent(event.content) }}
-            />
-            {extractMediaUrls(event.content).length > 0 && (
-              <MediaViewer urls={extractMediaUrls(event.content)} />
-            )}
-          </>
         </div>
       ))}
       <div ref={observerRef} className="h-10" />
