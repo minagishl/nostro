@@ -7,10 +7,17 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "format": "prettier --write **/*.{ts,tsx,css}"
+    "format": "prettier --write **/*.{ts,tsx,css}",
+    "prepare": "husky"
   },
   "author": "minagishl",
   "license": "MIT",
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "pnpm run lint",
+      "pnpm run format"
+    ]
+  },
   "dependencies": {
     "@noble/secp256k1": "^2.2.3",
     "next": "15.3.1",
@@ -20,6 +27,8 @@
     "zustand": "^5.0.4"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.0",
+    "@commitlint/config-conventional": "^19.8.0",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
@@ -28,6 +37,8 @@
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
     "eslint-config-prettier": "^10.1.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.1",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4",
