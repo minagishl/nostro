@@ -2,12 +2,12 @@
 
 /* Global link styles */
 a {
-  color: #3b82f6; /* Tailwind blue-500 */
+  color: #4f46e5; /* Tailwind indigo-600 */
   text-decoration: underline;
 }
 
 a:hover {
-  color: #2563eb; /* Tailwind blue-600 */
+  color: #4338ca; /* Tailwind indigo-700 */
 }
 
 a:has(> h1) {
