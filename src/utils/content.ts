@@ -24,10 +24,19 @@ function convertUrls(content: string): string {
 	);
 }
 
+function escapeHtml(text: string): string {
+	return text
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#039;');
+}
+
 export function formatContent(content: string): string {
 	// Remove media URLs from the displayed content to avoid duplicates
 	const mediaUrls = extractMediaUrls(content);
-	let formattedContent = content;
+	let formattedContent = escapeHtml(content);
 
 	mediaUrls.forEach((url) => {
 		formattedContent = formattedContent.replace(url, '');
