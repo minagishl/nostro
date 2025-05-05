@@ -1,90 +1,102 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
+// types
 interface MediaViewerProps {
 	urls: string[];
 }
 
 type MediaType = 'image' | 'video' | 'unknown';
 
-const getMediaType = (url: string): MediaType => {
+// utilities
+export const getMediaType = (url: string): MediaType => {
 	try {
 		// Remove query parameters from URL before parsing
 		const urlWithoutQuery = url.split('?')[0];
-		const parsedUrl = new URL(urlWithoutQuery);
-		const ext = parsedUrl.pathname.split('.').pop()?.toLowerCase();
+		const parsed = new URL(urlWithoutQuery);
+		const ext = parsed.pathname.split('.').pop()?.toLowerCase();
 		if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || '')) return 'image';
 		if (['mp4', 'webm', 'mov'].includes(ext || '')) return 'video';
 		return 'unknown';
 	} catch {
+		// If URL parsing fails, return 'unknown'
+		console.error('Invalid URL:', url);
 		return 'unknown';
 	}
 };
 
-interface MediaItemProps {
-	url: string;
-	type: MediaType;
-	onLoad: () => void;
-	onError: () => void;
-	onClick: () => void;
-	isExpanded?: boolean;
+// hooks
+function useIntersectionObserver(
+	ref: React.RefObject<Element | null>,
+	options: IntersectionObserverInit = {}
+): boolean {
+	const [isIntersecting, setIntersecting] = useState(false);
+
+	useEffect(() => {
+		if (!ref.current) return;
+		const obs = new IntersectionObserver(([entry]) => {
+			if (entry.isIntersecting) {
+				setIntersecting(true);
+				obs.disconnect();
+			}
+		}, options);
+		obs.observe(ref.current);
+
+		return () => obs.disconnect();
+	}, [ref, options]);
+
+	return isIntersecting;
 }
 
+// lock scroll
+function useBodyScrollLock(active: boolean) {
+	useEffect(() => {
+		document.body.style.overflow = active ? 'hidden' : '';
+		return () => {
+			document.body.style.overflow = '';
+		};
+	}, [active]);
+}
+
+// MediaItem
+interface MediaItemProps {
+	url: string;
+	onLoad: () => void;
+	onError: () => void;
+	onClick?: () => void;
+	isExpanded?: boolean;
+}
 const MediaItem: React.FC<MediaItemProps> = ({
 	url,
-	type,
 	onLoad,
 	onError,
-	onClick,
+	onClick = () => {},
 	isExpanded = false,
 }) => {
-	const [hasError, setHasError] = React.useState(false);
-	const elementRef = React.useRef<HTMLDivElement>(null);
-	const [isVisible, setIsVisible] = React.useState(false);
+	const type = getMediaType(url);
+	const ref = useRef<HTMLDivElement>(null);
+	const visible = useIntersectionObserver(ref, { threshold: 0.1 });
+	const [error, setError] = useState(false);
 
-	// First useEffect for media loading
-	React.useEffect(() => {
-		const handleLoad = () => {
-			onLoad();
-		};
-		if (isVisible || isExpanded) {
-			if (type === 'image') {
-				const img = new Image();
-				img.onload = handleLoad;
-				img.onerror = () => {
-					setHasError(true);
-					onError();
-				};
-				img.src = url;
-			} else if (type === 'video') {
-				const video = document.createElement('video');
-				video.onloadeddata = handleLoad;
-				video.onerror = onError;
-				video.src = url;
-			}
+	useEffect(() => {
+		if (!visible && !isExpanded) return;
+
+		if (type === 'image') {
+			const img = new Image();
+			img.onload = onLoad;
+			img.onerror = () => {
+				setError(true);
+				onError();
+			};
+			img.src = url;
+		} else if (type === 'video') {
+			const video = document.createElement('video');
+			video.onloadeddata = onLoad;
+			video.onerror = onError;
+			video.src = url;
 		}
-	}, [isVisible, isExpanded, type, url, onLoad, onError]);
+	}, [visible, isExpanded, type, url, onLoad, onError]);
 
-	// Second useEffect for intersection observer
-	React.useEffect(() => {
-		const observer = new IntersectionObserver(
-			(entries) => {
-				if (entries[0].isIntersecting) {
-					setIsVisible(true);
-					observer.disconnect();
-				}
-			},
-			{ threshold: 0.1 }
-		);
-
-		if (elementRef.current) {
-			observer.observe(elementRef.current);
-		}
-
-		return () => observer.disconnect();
-	}, []);
-
-	// Render logic
-	if (hasError) {
+	if (error) {
 		return (
 			<div className='p-4 text-sm text-red-500 bg-red-100 dark:bg-red-900 dark:text-red-300 rounded-lg'>
 				Failed to load media
@@ -92,13 +104,8 @@ const MediaItem: React.FC<MediaItemProps> = ({
 		);
 	}
 
-	if (!isVisible && !isExpanded) {
-		return (
-			<div
-				ref={elementRef}
-				className='h-64 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse'
-			/>
-		);
+	if (!visible && !isExpanded) {
+		return <div ref={ref} className='h-64 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse' />;
 	}
 
 	if (type === 'image') {
@@ -114,7 +121,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
 				onClick={onClick}
 				onLoad={onLoad}
 				onError={() => {
-					setHasError(true);
+					setError(true);
 					onError();
 				}}
 			/>
@@ -126,11 +133,10 @@ const MediaItem: React.FC<MediaItemProps> = ({
 			<video
 				src={url}
 				className='rounded-lg max-h-64 w-full object-contain bg-black'
-				onClick={() => {}}
 				onLoadedData={onLoad}
 				onError={onError}
 				controls
-				poster={url + '#t=0.001'} // Show first frame as poster
+				poster={`${url}#t=0.001`}
 				playsInline
 				preload='metadata'
 			/>
@@ -140,143 +146,112 @@ const MediaItem: React.FC<MediaItemProps> = ({
 	return null;
 };
 
-export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
-	const [isExpanded, setIsExpanded] = useState(false);
-	const [selectedIndex, setSelectedIndex] = useState(0);
+// Thumbnail Grid
+interface GridProps {
+	urls: string[];
+	onThumbnailClick: (index: number) => void;
+}
+const ThumbnailGrid: React.FC<GridProps> = ({ urls, onThumbnailClick }) => {
+	const count = urls.length;
+	const isEven = count % 2 === 0;
 
-	const toggleExpand = () => {
-		setIsExpanded(!isExpanded);
-	};
-
-	const handleImageClick = (index: number) => {
-		setSelectedIndex(index);
-		toggleExpand();
-	};
-
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if (isExpanded && (e.key === 'Escape' || e.key === 'Esc')) {
-				setIsExpanded(false);
-			}
-		};
-
-		// Control body scroll
-		if (isExpanded) {
-			document.body.style.overflow = 'hidden';
-		} else {
-			document.body.style.overflow = '';
-		}
-
-		window.addEventListener('keydown', handleKeyDown);
-		return () => {
-			window.removeEventListener('keydown', handleKeyDown);
-			document.body.style.overflow = '';
-		};
-	}, [isExpanded]);
-
-	if (!urls || urls.length === 0) return null;
-
-	const validUrls = urls.filter((url) => getMediaType(url) !== 'unknown');
-	if (validUrls.length === 0) return null;
-
-	// If it's a video, do not expand
-	if (isExpanded && getMediaType(validUrls[selectedIndex]) === 'image') {
+	if (count === 1) {
 		return (
-			<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/75'>
-				<div className='relative w-screen h-screen p-8'>
-					<button
-						className='absolute top-8 right-8 text-white bg-black/50 hover:bg-black/75 rounded-full p-2'
-						onClick={() => toggleExpand()}
-					>
-						<svg
-							xmlns='http://www.w3.org/2000/svg'
-							className='h-6 w-6'
-							fill='none'
-							viewBox='0 0 24 24'
-							stroke='currentColor'
-						>
-							<path
-								strokeLinecap='round'
-								strokeLinejoin='round'
-								strokeWidth={2}
-								d='M6 18L18 6M6 6l12 12'
-							/>
-						</svg>
-					</button>
+			<MediaItem
+				url={urls[0]}
+				onLoad={() => {}}
+				onError={() => {}}
+				onClick={() => onThumbnailClick(0)}
+			/>
+		);
+	}
+
+	if (isEven) {
+		return (
+			<div className='grid grid-cols-2 gap-2'>
+				{urls.map((url, i) => (
 					<MediaItem
-						url={validUrls[selectedIndex]}
-						type='image'
+						key={i}
+						url={url}
 						onLoad={() => {}}
 						onError={() => {}}
-						onClick={() => {}}
-						isExpanded={true}
+						onClick={() => onThumbnailClick(i)}
 					/>
-				</div>
-				<div className='fixed inset-0' onClick={() => toggleExpand()} />
+				))}
 			</div>
 		);
 	}
 
 	return (
-		<div className='mt-2 grid gap-2'>
-			{validUrls.length === 1 && (
-				<div className='relative'>
+		<>
+			<div className='grid grid-cols-2 gap-2'>
+				{urls.slice(0, count - 1).map((url, i) => (
 					<MediaItem
-						url={validUrls[0]}
-						type={getMediaType(validUrls[0])}
+						key={i}
+						url={url}
 						onLoad={() => {}}
 						onError={() => {}}
-						onClick={getMediaType(validUrls[0]) === 'image' ? () => handleImageClick(0) : () => {}}
+						onClick={() => onThumbnailClick(i)}
 					/>
-				</div>
-			)}
+				))}
+			</div>
+			<MediaItem
+				url={urls[count - 1]}
+				onLoad={() => {}}
+				onError={() => {}}
+				onClick={() => onThumbnailClick(count - 1)}
+			/>
+		</>
+	);
+};
 
-			{validUrls.length > 1 && (
-				<div className='grid gap-2'>
-					{validUrls.length % 2 === 0 ? (
-						<div className='grid grid-cols-2 gap-2'>
-							{validUrls.map((url, index) => (
-								<MediaItem
-									key={index}
-									url={url}
-									type={getMediaType(url)}
-									onLoad={() => {}}
-									onError={() => {}}
-									onClick={getMediaType(url) === 'image' ? () => handleImageClick(index) : () => {}}
-								/>
-							))}
-						</div>
-					) : (
-						<>
-							<div className='grid grid-cols-2 gap-2'>
-								{validUrls.slice(0, validUrls.length - 1).map((url, index) => (
-									<MediaItem
-										key={index}
-										url={url}
-										type={getMediaType(url)}
-										onLoad={() => {}}
-										onError={() => {}}
-										onClick={
-											getMediaType(url) === 'image' ? () => handleImageClick(index) : () => {}
-										}
-									/>
-								))}
-							</div>
-							<MediaItem
-								url={validUrls[validUrls.length - 1]}
-								type={getMediaType(validUrls[validUrls.length - 1])}
-								onLoad={() => {}}
-								onError={() => {}}
-								onClick={
-									getMediaType(validUrls[validUrls.length - 1]) === 'image'
-										? () => handleImageClick(validUrls.length - 1)
-										: () => {}
-								}
-							/>
-						</>
-					)}
+// Main Viewer
+export const MediaViewer: React.FC<MediaViewerProps> = ({ urls }) => {
+	const validUrls = urls.filter((u) => getMediaType(u) !== 'unknown');
+	const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+	const isExpanded = expandedIdx !== null;
+
+	useBodyScrollLock(isExpanded);
+
+	useEffect(() => {
+		const onKey = (e: KeyboardEvent) => {
+			if (isExpanded && (e.key === 'Escape' || e.key === 'Esc')) {
+				setExpandedIdx(null);
+			}
+		};
+		window.addEventListener('keydown', onKey);
+		return () => window.removeEventListener('keydown', onKey);
+	}, [isExpanded]);
+
+	if (!validUrls.length) return null;
+
+	const handleThumbnailClick = (idx: number) => setExpandedIdx(idx);
+	const closeExpanded = () => setExpandedIdx(null);
+
+	return (
+		<>
+			{isExpanded && getMediaType(validUrls[expandedIdx!]) === 'image' && (
+				<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/75'>
+					<div className='relative w-screen h-screen p-8'>
+						<button
+							className='absolute top-8 right-8 text-white bg-black/50 hover:bg-black/75 rounded-full p-2'
+							onClick={closeExpanded}
+						>
+							{/* close icon */}✕
+						</button>
+						<MediaItem
+							url={validUrls[expandedIdx!]}
+							onLoad={() => {}}
+							onError={() => {}}
+							isExpanded
+						/>
+					</div>
+					<div className='fixed inset-0' onClick={closeExpanded} />
 				</div>
 			)}
-		</div>
+			<div className='mt-2 grid gap-2'>
+				<ThumbnailGrid urls={validUrls} onThumbnailClick={handleThumbnailClick} />
+			</div>
+		</>
 	);
 };
