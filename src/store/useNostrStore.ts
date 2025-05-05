@@ -30,6 +30,7 @@ interface NostrState {
   isExtensionLogin: boolean;
   relays: string[];
   events: Event[];
+  repostEvents: Record<string, Event>;
   searchResults: Event[];
   profiles: Record<string, ProfileMetadata>;
   nip05ToPubkey: Record<string, string>;
@@ -48,6 +49,7 @@ interface NostrState {
   unfollowUser: (pubkey: string) => Promise<void>;
   replyToNote: (content: string, replyTo: Event) => Promise<void>;
   repostNote: (event: Event) => Promise<void>;
+  getRepostedEvent: (repostEvent: Event) => Promise<Event | null>;
 }
 
 async function verifyNip05(identifier: string, pubkey: string): Promise<boolean> {
@@ -108,6 +110,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
     'wss://nrelay-jp.c-stellar.net',
   ],
   events: [],
+  repostEvents: {},
   searchResults: [],
   profiles: {},
   nip05ToPubkey: {},
@@ -164,18 +167,39 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 
   loadEvents: async () => {
     const { pool, relays, publicKey, following } = get();
+
     const filter: Filter = {
-      kinds: [1],
+      kinds: [1, 6],
       limit: 100,
     };
 
-    // Show only posts from users you follow
     if (publicKey && following.length > 0) {
       filter.authors = following;
     }
 
     const events = await pool.querySync(relays, filter);
-    set({ events: events.sort((a, b) => b.created_at - a.created_at) });
+    const sortedEvents = events.sort((a, b) => b.created_at - a.created_at);
+    const repostEvents: Record<string, Event> = {};
+    const repostsToFetch = sortedEvents.filter((event) => event.kind === 6);
+
+    for (const repostEvent of repostsToFetch) {
+      const originalEventId = repostEvent.tags.find((tag) => tag[0] === 'e')?.[1];
+
+      if (originalEventId) {
+        const originalEventFilter: Filter = {
+          ids: [originalEventId],
+          kinds: [1],
+        };
+
+        const originalEvents = await pool.querySync(relays, originalEventFilter);
+
+        if (originalEvents.length > 0) {
+          repostEvents[repostEvent.id] = originalEvents[0];
+        }
+      }
+    }
+
+    set({ events: sortedEvents, repostEvents });
   },
 
   loadFollowing: async () => {
@@ -291,7 +315,6 @@ export const useNostrStore = create<NostrState>((set, get) => ({
         if (metadata.nip05) {
           const isVerified = await verifyNip05(metadata.nip05, pubkey);
           if (isVerified) {
-            // Format the NIP-05 identifier similarly to display
             const formattedNip05 = metadata.nip05.startsWith('_@')
               ? metadata.nip05.slice(2)
               : metadata.nip05;
@@ -401,5 +424,35 @@ export const useNostrStore = create<NostrState>((set, get) => ({
     }
 
     await Promise.all(relays.map((relay) => pool.publish([relay], eventToPublish)));
+  },
+
+  getRepostedEvent: async (repostEvent: Event): Promise<Event | null> => {
+    const { pool, relays, repostEvents } = get();
+
+    if (repostEvents[repostEvent.id]) {
+      return repostEvents[repostEvent.id];
+    }
+
+    const originalEventId = repostEvent.tags.find((tag) => tag[0] === 'e')?.[1];
+    if (!originalEventId) return null;
+
+    const originalEventFilter: Filter = {
+      ids: [originalEventId],
+      kinds: [1],
+    };
+
+    const originalEvents = await pool.querySync(relays, originalEventFilter);
+
+    if (originalEvents.length > 0) {
+      set((state) => ({
+        repostEvents: {
+          ...state.repostEvents,
+          [repostEvent.id]: originalEvents[0],
+        },
+      }));
+      return originalEvents[0];
+    }
+
+    return null;
   },
 }));
