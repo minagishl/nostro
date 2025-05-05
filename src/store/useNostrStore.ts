@@ -33,6 +33,7 @@ interface NostrState {
   searchResults: Event[];
   profiles: Record<string, ProfileMetadata>;
   nip05ToPubkey: Record<string, string>;
+  following: string[];
   generateKeys: () => Promise<void>;
   setKeys: (privateKey: string) => void;
   loginWithExtension: () => Promise<void>;
@@ -42,6 +43,9 @@ interface NostrState {
   loadProfile: (pubkey: string) => Promise<void>;
   lookupNip05: (identifier: string) => Promise<string | null>;
   searchEvents: (query: string) => Promise<void>;
+  loadFollowing: () => Promise<void>;
+  followUser: (pubkey: string) => Promise<void>;
+  unfollowUser: (pubkey: string) => Promise<void>;
 }
 
 async function verifyNip05(identifier: string, pubkey: string): Promise<boolean> {
@@ -89,6 +93,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
   publicKey: null,
   privateKey: null,
   isExtensionLogin: false,
+  following: [],
   relays: [
     'wss://relay.damus.io',
     'wss://nostr.land',
@@ -156,14 +161,102 @@ export const useNostrStore = create<NostrState>((set, get) => ({
   },
 
   loadEvents: async () => {
-    const { pool, relays } = get();
+    const { pool, relays, publicKey, following } = get();
     const filter: Filter = {
       kinds: [1],
       limit: 100,
     };
 
+    // Show only posts from users you follow
+    if (publicKey && following.length > 0) {
+      filter.authors = following;
+    }
+
     const events = await pool.querySync(relays, filter);
     set({ events: events.sort((a, b) => b.created_at - a.created_at) });
+  },
+
+  loadFollowing: async () => {
+    const { pool, relays, publicKey } = get();
+    if (!publicKey) return;
+
+    const filter: Filter = {
+      kinds: [3],
+      authors: [publicKey],
+      limit: 1,
+    };
+
+    const events = await pool.querySync(relays, filter);
+    if (events.length > 0) {
+      const contactList = events[0].tags.filter((tag) => tag[0] === 'p').map((tag) => tag[1]);
+      set({ following: contactList });
+    }
+  },
+
+  followUser: async (pubkey: string) => {
+    const { pool, relays, publicKey, privateKey, following, isExtensionLogin } = get();
+    if (!publicKey) return;
+
+    const newFollowing = [...following, pubkey];
+    const baseEvent = {
+      kind: 3,
+      pubkey: publicKey,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: newFollowing.map((pk) => ['p', pk]),
+      content: '',
+    };
+
+    const unsignedEvent: Event = {
+      ...baseEvent,
+      id: getEventHash(baseEvent),
+      sig: '',
+    };
+
+    let eventToPublish = unsignedEvent;
+
+    if (isExtensionLogin) {
+      const signedEvent = await signEventWithExtension(unsignedEvent);
+      if (!signedEvent) return;
+      eventToPublish = signedEvent;
+    } else if (!privateKey) {
+      return;
+    }
+
+    await Promise.all(relays.map((relay) => pool.publish([relay], eventToPublish)));
+    set({ following: newFollowing });
+  },
+
+  unfollowUser: async (pubkey: string) => {
+    const { pool, relays, publicKey, privateKey, following, isExtensionLogin } = get();
+    if (!publicKey) return;
+
+    const newFollowing = following.filter((pk) => pk !== pubkey);
+    const baseEvent = {
+      kind: 3,
+      pubkey: publicKey,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: newFollowing.map((pk) => ['p', pk]),
+      content: '',
+    };
+
+    const unsignedEvent: Event = {
+      ...baseEvent,
+      id: getEventHash(baseEvent),
+      sig: '',
+    };
+
+    let eventToPublish = unsignedEvent;
+
+    if (isExtensionLogin) {
+      const signedEvent = await signEventWithExtension(unsignedEvent);
+      if (!signedEvent) return;
+      eventToPublish = signedEvent;
+    } else if (!privateKey) {
+      return;
+    }
+
+    await Promise.all(relays.map((relay) => pool.publish([relay], eventToPublish)));
+    set({ following: newFollowing });
   },
 
   loadUserEvents: async (pubkey: string) => {

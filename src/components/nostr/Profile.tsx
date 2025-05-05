@@ -9,6 +9,38 @@ interface ProfileProps {
   displayIdentifier?: string;
 }
 
+interface FollowButtonProps {
+  targetPubkey: string;
+}
+
+const FollowButton: React.FC<FollowButtonProps> = ({ targetPubkey }) => {
+  const { publicKey, following, followUser, unfollowUser } = useNostrStore();
+  const isFollowing = following.includes(targetPubkey);
+
+  if (!publicKey || publicKey === targetPubkey) return null;
+
+  const handleClick = async () => {
+    if (isFollowing) {
+      await unfollowUser(targetPubkey);
+    } else {
+      await followUser(targetPubkey);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      className={`rounded px-4 py-2 text-sm font-semibold ${
+        isFollowing
+          ? 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+          : 'bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700'
+      }`}
+    >
+      {isFollowing ? 'Unfollow' : 'Follow'}
+    </button>
+  );
+};
+
 const formatDisplayIdentifier = (identifier: string | undefined, pubkey: string): string => {
   if (!identifier) {
     return `${pubkey.slice(0, 8)}...${pubkey.slice(-8)}`;
@@ -53,12 +85,15 @@ export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) =
             </h2>
             {profile?.about && (
               <p
-                className="mt-2 text-gray-600 dark:text-gray-300"
+                className="mt-2 leading-relaxed break-words whitespace-pre-wrap text-gray-600 dark:text-gray-300"
                 dangerouslySetInnerHTML={{ __html: formatContent(profile.about) }}
               />
             )}
-            <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              <code>{formatDisplayIdentifier(displayIdentifier, pubkey)}</code>
+            <div className="mt-2 flex items-center justify-between">
+              <code className="text-sm text-gray-500 dark:text-gray-400">
+                {formatDisplayIdentifier(displayIdentifier, pubkey)}
+              </code>
+              <FollowButton targetPubkey={pubkey} />
             </div>
           </div>
         </div>

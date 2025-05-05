@@ -10,7 +10,7 @@ interface TimelineProps {
 }
 
 export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
-  const { events: storeEvents, loadEvents } = useNostrStore();
+  const { events: storeEvents, loadEvents, loadFollowing, publicKey } = useNostrStore();
   const events = propEvents || storeEvents;
   const [displayCount, setDisplayCount] = useState(10);
   const observerRef = useRef<HTMLDivElement>(null);
@@ -35,10 +35,17 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
   }, [displayCount, events.length]);
 
   useEffect(() => {
-    loadEvents();
+    const init = async () => {
+      if (publicKey) {
+        await loadFollowing();
+      }
+      await loadEvents();
+    };
+
+    init();
     const interval = setInterval(loadEvents, 10000); // Refresh every 10 seconds
     return () => clearInterval(interval);
-  }, [loadEvents]);
+  }, [loadEvents, loadFollowing, publicKey]);
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleString();
@@ -83,7 +90,9 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
       <div ref={observerRef} className="h-10" />
       {displayEvents.length === 0 && (
         <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-          No posts yet. Be the first to post!
+          {publicKey
+            ? 'There are no posts from users you follow. Try following new users!'
+            : 'Log in to see posts from users you follow.'}
         </div>
       )}
     </div>
