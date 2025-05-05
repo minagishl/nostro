@@ -5,12 +5,12 @@ import { PostForm } from '@/components/nostr/PostForm';
 import { Timeline } from '@/components/nostr/Timeline';
 
 export default function Home() {
-	return (
-		<Layout>
-			<div className='flex flex-col space-y-6'>
-				<PostForm />
-				<Timeline />
-			</div>
-		</Layout>
-	);
+  return (
+    <Layout>
+      <div className="flex flex-col space-y-6">
+        <PostForm />
+        <Timeline />
+      </div>
+    </Layout>
+  );
 }

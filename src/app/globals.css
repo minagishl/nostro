@@ -2,18 +2,18 @@
 
 /* Global link styles */
 a {
-	color: #3b82f6; /* Tailwind blue-500 */
-	text-decoration: underline;
+  color: #3b82f6; /* Tailwind blue-500 */
+  text-decoration: underline;
 }
 
 a:hover {
-	color: #2563eb; /* Tailwind blue-600 */
+  color: #2563eb; /* Tailwind blue-600 */
 }
 
 a:has(> h1) {
-	text-decoration: none;
+  text-decoration: none;
 }
 
 * {
-	overscroll-behavior-y: none !important;
+  overscroll-behavior-y: none !important;
 }
