@@ -139,7 +139,10 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
           <div className="flex flex-col">
             <div className="p-4">
               <div className="flex gap-3">
-                <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-gray-200 dark:bg-gray-700">
+                <Link
+                  href={`/profile/${event.pubkey}`}
+                  className="h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-gray-200 dark:bg-gray-700"
+                >
                   {getUserProfileImage(event.pubkey) ? (
                     <img
                       src={getUserProfileImage(event.pubkey)}
@@ -164,7 +167,7 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
                       </svg>
                     </div>
                   )}
-                </div>
+                </Link>
                 <div className="flex-1">
                   <div className="flex items-start justify-between">
                     <Link
