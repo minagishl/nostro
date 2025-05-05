@@ -26,6 +26,7 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
   const displayEvents = events.slice(0, displayCount);
   const [replyingTo, setReplyingTo] = useState<NostrEvent | null>(null);
   const [usernameCacheMap, setUsernameCacheMap] = useState<Record<string, string>>({});
+  const [profileImageCacheMap, setProfileImageCacheMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -59,22 +60,29 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
   }, [loadEvents, loadFollowing, publicKey]);
 
   useEffect(() => {
-    // This effect loads profile information and updates the username cache
+    // This effect loads profile information and updates the username and profile image cache
     const loadProfiles = async () => {
       const uniquePubkeys = [...new Set(displayEvents.map((event) => event.pubkey))];
 
       const newCache = { ...usernameCacheMap };
+      const newImageCache = { ...profileImageCacheMap };
 
       for (const pubkey of uniquePubkeys) {
         // Load profile only if it doesn't exist in the cache
-        if (!usernameCacheMap[pubkey] && !profiles[pubkey]) {
+        if ((!usernameCacheMap[pubkey] || !profileImageCacheMap[pubkey]) && !profiles[pubkey]) {
           await loadProfile(pubkey);
         }
 
         // Update the cache if profile information is available
-        if (profiles[pubkey] && !usernameCacheMap[pubkey]) {
-          const username = profiles[pubkey].name || `${pubkey.slice(0, 8)}...${pubkey.slice(-8)}`;
-          newCache[pubkey] = username;
+        if (profiles[pubkey]) {
+          if (!usernameCacheMap[pubkey]) {
+            const username = profiles[pubkey].name || `${pubkey.slice(0, 8)}...${pubkey.slice(-8)}`;
+            newCache[pubkey] = username;
+          }
+
+          if (!profileImageCacheMap[pubkey] && profiles[pubkey].picture) {
+            newImageCache[pubkey] = profiles[pubkey].picture!;
+          }
         }
       }
 
@@ -82,10 +90,14 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
       if (Object.keys(newCache).length > Object.keys(usernameCacheMap).length) {
         setUsernameCacheMap(newCache);
       }
+
+      if (Object.keys(newImageCache).length > Object.keys(profileImageCacheMap).length) {
+        setProfileImageCacheMap(newImageCache);
+      }
     };
 
     loadProfiles();
-  }, [displayEvents, loadProfile, profiles, usernameCacheMap]);
+  }, [displayEvents, loadProfile, profiles, usernameCacheMap, profileImageCacheMap]);
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleString();
@@ -104,6 +116,19 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
     return `${pubkey.slice(0, 8)}...${pubkey.slice(-8)}`;
   };
 
+  const getUserProfileImage = (pubkey: string) => {
+    if (profileImageCacheMap[pubkey]) {
+      return profileImageCacheMap[pubkey];
+    }
+
+    if (profiles[pubkey]?.picture) {
+      setProfileImageCacheMap((prev) => ({ ...prev, [pubkey]: profiles[pubkey].picture! }));
+      return profiles[pubkey].picture;
+    }
+
+    return '';
+  };
+
   return (
     <div className="space-y-4">
       {displayEvents.map((event) => (
@@ -114,7 +139,32 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
           <div className="flex flex-col">
             <div className="p-4">
               <div className="flex gap-3">
-                <div className="h-12 w-12 flex-shrink-0 rounded bg-gray-200 dark:bg-gray-700" />
+                <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded bg-gray-200 dark:bg-gray-700">
+                  {getUserProfileImage(event.pubkey) ? (
+                    <img
+                      src={getUserProfileImage(event.pubkey)}
+                      alt={`${getUserDisplayName(event.pubkey)}'s profile`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-gray-400">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
                 <div className="flex-1">
                   <div className="flex items-start justify-between">
                     <Link
