@@ -107,7 +107,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
 				className={
 					isExpanded
 						? 'w-full h-full object-contain'
-						: 'rounded-lg max-h-64 w-full object-contain cursor-pointer hover:opacity-90 bg-black'
+						: 'rounded-lg max-h-64 h-full w-full object-contain cursor-pointer hover:opacity-90 bg-black'
 				}
 				onClick={onClick}
 				onLoad={onLoad}
