@@ -168,6 +168,10 @@ export const useNostrStore = create<NostrState>((set, get) => ({
   loadEvents: async () => {
     const { pool, relays, publicKey, following } = get();
 
+    // Use only a few relays for efficiency (limit the number of relays)
+    const selectedRelays = relays.slice(0, 3);
+
+    // If there are users being followed, prioritize their events
     const filter: Filter = {
       kinds: [1, 6],
       limit: 100,
@@ -177,26 +181,41 @@ export const useNostrStore = create<NostrState>((set, get) => ({
       filter.authors = following;
     }
 
-    const events = await pool.querySync(relays, filter);
+    // Retrieve all events in a single query
+    console.log(`Fetching events from ${selectedRelays.length} relays`);
+    const events = await pool.querySync(selectedRelays, filter);
     const sortedEvents = events.sort((a, b) => b.created_at - a.created_at);
-    const repostEvents: Record<string, Event> = {};
+
+    // Collect repost and original event IDs
     const repostsToFetch = sortedEvents.filter((event) => event.kind === 6);
+    const originalEventIds = repostsToFetch
+      .map((event) => event.tags.find((tag) => tag[0] === 'e')?.[1])
+      .filter((id): id is string => !!id);
 
-    for (const repostEvent of repostsToFetch) {
-      const originalEventId = repostEvent.tags.find((tag) => tag[0] === 'e')?.[1];
+    // Only fetch in batch if there are original event IDs
+    let repostEvents: Record<string, Event> = {};
+    if (originalEventIds.length > 0) {
+      const batchFilter: Filter = {
+        ids: originalEventIds,
+        kinds: [1],
+      };
 
-      if (originalEventId) {
-        const originalEventFilter: Filter = {
-          ids: [originalEventId],
-          kinds: [1],
-        };
+      console.log(`Fetching ${originalEventIds.length} original events in one batch`);
+      const originalEvents = await pool.querySync(selectedRelays, batchFilter);
 
-        const originalEvents = await pool.querySync(relays, originalEventFilter);
+      // Map original events
+      const originalEventMap: Record<string, Event> = {};
+      originalEvents.forEach((event) => {
+        originalEventMap[event.id] = event;
+      });
 
-        if (originalEvents.length > 0) {
-          repostEvents[repostEvent.id] = originalEvents[0];
+      // Associate reposts with their original events
+      repostsToFetch.forEach((repost) => {
+        const originalId = repost.tags.find((tag) => tag[0] === 'e')?.[1];
+        if (originalId && originalEventMap[originalId]) {
+          repostEvents[repost.id] = originalEventMap[originalId];
         }
-      }
+      });
     }
 
     set({ events: sortedEvents, repostEvents });
@@ -427,32 +446,16 @@ export const useNostrStore = create<NostrState>((set, get) => ({
   },
 
   getRepostedEvent: async (repostEvent: Event): Promise<Event | null> => {
-    const { pool, relays, repostEvents } = get();
+    const { repostEvents } = get();
 
+    // If already cached, return it
     if (repostEvents[repostEvent.id]) {
       return repostEvents[repostEvent.id];
     }
 
-    const originalEventId = repostEvent.tags.find((tag) => tag[0] === 'e')?.[1];
-    if (!originalEventId) return null;
-
-    const originalEventFilter: Filter = {
-      ids: [originalEventId],
-      kinds: [1],
-    };
-
-    const originalEvents = await pool.querySync(relays, originalEventFilter);
-
-    if (originalEvents.length > 0) {
-      set((state) => ({
-        repostEvents: {
-          ...state.repostEvents,
-          [repostEvent.id]: originalEvents[0],
-        },
-      }));
-      return originalEvents[0];
-    }
-
+    // Since batch fetching is now done in loadEvents,
+    // do not make individual requests; return null if not already fetched
+    console.log('Original event not found in cache');
     return null;
   },
 }));
