@@ -23,6 +23,20 @@ interface ProfileMetadata {
   nip05?: string;
 }
 
+interface SubscribeOptions {
+  onevent: (event: Event) => void;
+}
+
+interface SubCloser {
+  close: () => void;
+}
+
+type RelaySubscription = SubCloser;
+
+type Subscription = {
+  unsub: () => void;
+};
+
 interface NostrState {
   pool: SimplePool;
   publicKey: string | null;
@@ -35,11 +49,13 @@ interface NostrState {
   profiles: Record<string, ProfileMetadata>;
   nip05ToPubkey: Record<string, string>;
   following: string[];
+  subscription: Subscription | null;
   generateKeys: () => Promise<void>;
   setKeys: (privateKey: string) => void;
   loginWithExtension: () => Promise<void>;
   publishNote: (content: string) => Promise<void>;
   loadEvents: () => Promise<void>;
+  unsubscribe: () => void;
   loadUserEvents: (pubkey: string) => Promise<void>;
   loadProfile: (pubkey: string) => Promise<void>;
   lookupNip05: (identifier: string) => Promise<string | null>;
@@ -98,6 +114,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
   privateKey: null,
   isExtensionLogin: false,
   following: [],
+  subscription: null,
   relays: [
     'wss://relay.damus.io',
     'wss://nostr.land',
@@ -165,13 +182,26 @@ export const useNostrStore = create<NostrState>((set, get) => ({
     await Promise.all(relays.map((relay) => pool.publish([relay], eventToPublish)));
   },
 
-  loadEvents: async () => {
-    const { pool, relays, publicKey, following } = get();
+  unsubscribe: () => {
+    const { subscription } = get();
+    if (subscription) {
+      subscription.unsub();
+      set({ subscription: null });
+    }
+  },
 
-    // Use only a few relays for efficiency (limit the number of relays)
+  loadEvents: async () => {
+    const { pool, relays, publicKey, following, subscription } = get();
+
+    // Unsubscribe from existing subscription if any
+    if (subscription) {
+      subscription.unsub();
+    }
+
+    // Use only a few relays for efficiency
     const selectedRelays = relays.slice(0, 3);
 
-    // If there are users being followed, prioritize their events
+    // Create filter for the events we want to receive
     const filter: Filter = {
       kinds: [1, 6],
       limit: 100,
@@ -181,44 +211,56 @@ export const useNostrStore = create<NostrState>((set, get) => ({
       filter.authors = following;
     }
 
-    // Retrieve all events in a single query
-    console.log(`Fetching events from ${selectedRelays.length} relays`);
-    const events = await pool.querySync(selectedRelays, filter);
-    const sortedEvents = events.sort((a, b) => b.created_at - a.created_at);
+    // First, load initial events synchronously
+    const initialEvents = await pool.querySync(selectedRelays, filter);
+    set({
+      events: initialEvents.sort((a, b) => b.created_at - a.created_at),
+    });
 
-    // Collect repost and original event IDs
-    const repostsToFetch = sortedEvents.filter((event) => event.kind === 6);
-    const originalEventIds = repostsToFetch
-      .map((event) => event.tags.find((tag) => tag[0] === 'e')?.[1])
-      .filter((id): id is string => !!id);
+    // Then set up subscription for real-time updates
+    try {
+      const sub = pool.subscribe(selectedRelays, filter, {
+        onevent: (event: Event) => {
+          // Handle reposts
+          if (event.kind === 6) {
+            const originalId = event.tags.find((tag) => tag[0] === 'e')?.[1];
+            if (originalId) {
+              // Fetch the original event
+              const originalFilter: Filter = {
+                ids: [originalId],
+                kinds: [1],
+              };
 
-    // Only fetch in batch if there are original event IDs
-    let repostEvents: Record<string, Event> = {};
-    if (originalEventIds.length > 0) {
-      const batchFilter: Filter = {
-        ids: originalEventIds,
-        kinds: [1],
-      };
+              void pool.get(selectedRelays, originalFilter).then((originalEvent) => {
+                if (originalEvent) {
+                  set((state) => ({
+                    repostEvents: { ...state.repostEvents, [event.id]: originalEvent },
+                  }));
+                }
+              });
+            }
+          }
 
-      console.log(`Fetching ${originalEventIds.length} original events in one batch`);
-      const originalEvents = await pool.querySync(selectedRelays, batchFilter);
-
-      // Map original events
-      const originalEventMap: Record<string, Event> = {};
-      originalEvents.forEach((event) => {
-        originalEventMap[event.id] = event;
+          // Add new event to the list if it doesn't exist
+          set((state) => {
+            // Check if event already exists
+            if (state.events.some((e) => e.id === event.id)) {
+              return state;
+            }
+            const newEvents = [event, ...state.events];
+            return {
+              events: newEvents.sort((a, b) => b.created_at - a.created_at),
+            };
+          });
+        },
       });
 
-      // Associate reposts with their original events
-      repostsToFetch.forEach((repost) => {
-        const originalId = repost.tags.find((tag) => tag[0] === 'e')?.[1];
-        if (originalId && originalEventMap[originalId]) {
-          repostEvents[repost.id] = originalEventMap[originalId];
-        }
-      });
+      // Convert RelaySubscription to our Subscription type
+      const subscription: Subscription = { unsub: () => sub.close() };
+      set({ subscription });
+    } catch (error) {
+      console.error('Failed to create subscription:', error);
     }
-
-    set({ events: sortedEvents, repostEvents });
   },
 
   loadFollowing: async () => {

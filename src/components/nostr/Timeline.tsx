@@ -21,6 +21,7 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
     repostNote,
     repostEvents,
     getRepostedEvent,
+    unsubscribe,
   } = useNostrStore();
   const events = propEvents || storeEvents;
   const [displayCount, setDisplayCount] = useState(10);
@@ -58,30 +59,34 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
     };
 
     init();
-    const interval = setInterval(loadEvents, 10000); // Refresh every 10 seconds
-    return () => clearInterval(interval);
-  }, [loadEvents, loadFollowing, publicKey]);
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [loadEvents, loadFollowing, publicKey, unsubscribe]);
 
   useEffect(() => {
     // This effect loads profile information and updates the username and profile image cache
     const loadProfiles = async () => {
-      const uniquePubkeys = [
-        ...new Set([
-          ...displayEvents.map((event) => event.pubkey),
-          ...displayEvents
-            .filter((event) => event.kind === 6)
-            .map((event) => {
-              const originalEvent = repostedEventsState[event.id] || repostEvents[event.id];
-              return originalEvent?.pubkey;
-            })
-            .filter(Boolean),
-        ]),
-      ];
+      // Get all pubkeys from both the original events and repost events
+      const allPubkeys = new Set<string>();
+
+      // Add pubkeys from all events
+      displayEvents.forEach((event) => {
+        // Add the event author's pubkey
+        allPubkeys.add(event.pubkey);
+
+        // If it's a repost, add the original author's pubkey
+        if (event.kind === 6) {
+          const originalEvent = repostedEventsState[event.id] || repostEvents[event.id];
+          if (originalEvent?.pubkey) {
+            allPubkeys.add(originalEvent.pubkey);
+          }
+        }
+      });
 
       const newCache = { ...usernameCacheMap };
       const newImageCache = { ...profileImageCacheMap };
 
-      for (const pubkey of uniquePubkeys) {
+      for (const pubkey of allPubkeys) {
         // Load profile only if it doesn't exist in the cache
         if ((!usernameCacheMap[pubkey] || !profileImageCacheMap[pubkey]) && !profiles[pubkey]) {
           await loadProfile(pubkey);
