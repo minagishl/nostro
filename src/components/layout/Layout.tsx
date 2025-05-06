@@ -33,7 +33,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-2xl py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">{publicKey ? children : <LoginForm />}</div>
       </main>
     </div>
