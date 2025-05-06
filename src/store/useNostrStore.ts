@@ -23,16 +23,6 @@ interface ProfileMetadata {
   nip05?: string;
 }
 
-interface SubscribeOptions {
-  onevent: (event: Event) => void;
-}
-
-interface SubCloser {
-  close: () => void;
-}
-
-type RelaySubscription = SubCloser;
-
 type Subscription = {
   unsub: () => void;
 };
@@ -50,7 +40,7 @@ interface NostrState {
   nip05ToPubkey: Record<string, string>;
   following: string[];
   subscription: Subscription | null;
-  nostrJsonCache: Record<string, any>;
+  nostrJsonCache: Record<string, unknown>;
   generateKeys: () => Promise<void>;
   setKeys: (privateKey: string) => void;
   loginWithExtension: () => Promise<void>;
@@ -72,7 +62,7 @@ interface NostrState {
 async function verifyNip05(
   identifier: string,
   pubkey: string,
-  cache: Record<string, any>,
+  cache: Record<string, unknown>,
 ): Promise<boolean> {
   try {
     const [username, domain] = identifier.split('@');
@@ -98,7 +88,7 @@ async function verifyNip05(
 
 async function lookupNip05Pubkey(
   identifier: string,
-  cache: Record<string, any>,
+  cache: Record<string, unknown>,
 ): Promise<string | null> {
   try {
     let username: string;
