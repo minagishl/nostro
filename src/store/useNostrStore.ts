@@ -50,6 +50,7 @@ interface NostrState {
   nip05ToPubkey: Record<string, string>;
   following: string[];
   subscription: Subscription | null;
+  nostrJsonCache: Record<string, any>;
   generateKeys: () => Promise<void>;
   setKeys: (privateKey: string) => void;
   loginWithExtension: () => Promise<void>;
@@ -68,13 +69,26 @@ interface NostrState {
   getRepostedEvent: (repostEvent: Event) => Promise<Event | null>;
 }
 
-async function verifyNip05(identifier: string, pubkey: string): Promise<boolean> {
+async function verifyNip05(
+  identifier: string,
+  pubkey: string,
+  cache: Record<string, any>,
+): Promise<boolean> {
   try {
     const [username, domain] = identifier.split('@');
     if (!username || !domain) return false;
 
-    const response = await fetch(`https://${domain}/.well-known/nostr.json?name=${username}`);
-    const data = await response.json();
+    const cacheKey = `${domain}:${username}`;
+    let data;
+
+    if (cache[cacheKey]) {
+      data = cache[cacheKey];
+    } else {
+      const response = await fetch(`https://${domain}/.well-known/nostr.json?name=${username}`);
+      data = await response.json();
+      cache[cacheKey] = data;
+    }
+
     return data?.names?.[username] === pubkey;
   } catch (e) {
     console.error('Failed to verify NIP-05:', e);
@@ -82,7 +96,10 @@ async function verifyNip05(identifier: string, pubkey: string): Promise<boolean>
   }
 }
 
-async function lookupNip05Pubkey(identifier: string): Promise<string | null> {
+async function lookupNip05Pubkey(
+  identifier: string,
+  cache: Record<string, any>,
+): Promise<string | null> {
   try {
     let username: string;
     let domain: string;
@@ -99,8 +116,16 @@ async function lookupNip05Pubkey(identifier: string): Promise<string | null> {
       domain = identifier;
     }
 
-    const response = await fetch(`https://${domain}/.well-known/nostr.json?name=${username}`);
-    const data = await response.json();
+    const cacheKey = `${domain}:${username}`;
+    let data;
+
+    if (cache[cacheKey]) {
+      data = cache[cacheKey];
+    } else {
+      const response = await fetch(`https://${domain}/.well-known/nostr.json?name=${username}`);
+      data = await response.json();
+      cache[cacheKey] = data;
+    }
     return data?.names?.[username] || null;
   } catch (e) {
     console.error('Failed to lookup NIP-05:', e);
@@ -131,6 +156,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
   searchResults: [],
   profiles: {},
   nip05ToPubkey: {},
+  nostrJsonCache: {},
 
   generateKeys: async () => {
     const privateKeyBytes = await generatePrivateKey();
@@ -374,7 +400,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
       try {
         const metadata: ProfileMetadata = JSON.parse(profileEvent.content);
         if (metadata.nip05) {
-          const isVerified = await verifyNip05(metadata.nip05, pubkey);
+          const isVerified = await verifyNip05(metadata.nip05, pubkey, get().nostrJsonCache);
           if (isVerified) {
             const formattedNip05 = metadata.nip05.startsWith('_@')
               ? metadata.nip05.slice(2)
@@ -398,7 +424,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
       return nip05ToPubkey[identifier];
     }
 
-    const pubkey = await lookupNip05Pubkey(identifier);
+    const pubkey = await lookupNip05Pubkey(identifier, get().nostrJsonCache);
     if (pubkey) {
       set({ nip05ToPubkey: { ...nip05ToPubkey, [identifier]: pubkey } });
       return pubkey;
