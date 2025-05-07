@@ -1,4 +1,5 @@
 import React from 'react';
+import { MessageCircle, Repeat2, User, Bookmark, BookmarkCheck } from 'lucide-react';
 import Link from 'next/link';
 import { MediaViewer } from './MediaViewer';
 import { extractMediaUrls, formatContent } from '@/utils/content';
@@ -51,19 +52,7 @@ export const Post: React.FC<PostProps> = ({
     <div className="mb-4 rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
       {isRepost && showRepostInfo && (
         <div className="flex items-center gap-2 px-4 pt-2 text-sm text-gray-500 dark:text-gray-400">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M17 1l4 4-4 4" />
-            <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-            <path d="M7 23l-4-4 4-4" />
-            <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-          </svg>
+          <Repeat2 className="h-4 w-4" />
           <Link href={`/profile/${event.pubkey}`} className="font-semibold hover:underline">
             {getUserDisplayName(event.pubkey)}
           </Link>
@@ -85,20 +74,7 @@ export const Post: React.FC<PostProps> = ({
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-gray-400">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    />
-                  </svg>
+                  <User className="h-6 w-6" />
                 </div>
               )}
             </Link>
@@ -135,35 +111,14 @@ export const Post: React.FC<PostProps> = ({
             }}
             className="flex items-center gap-2 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-            </svg>
+            <MessageCircle className="h-5 w-5" />
             Reply
           </button>
           <button
             onClick={() => onRepost(displayEvent)}
             className="flex items-center gap-2 text-gray-500 hover:text-green-500 dark:text-gray-400 dark:hover:text-green-400"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M17 1l4 4-4 4" />
-              <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-              <path d="M7 23l-4-4 4-4" />
-              <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-            </svg>
+            <Repeat2 className="h-5 w-5" />
             Repost
           </button>
           <button
@@ -172,29 +127,9 @@ export const Post: React.FC<PostProps> = ({
             aria-label={isBookmarked ? 'ブックマーク解除' : 'ブックマーク'}
           >
             {isBookmarked ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M5 3a2 2 0 00-2 2v12l7-4 7 4V5a2 2 0 00-2-2H5z" />
-              </svg>
+              <BookmarkCheck className="h-5 w-5" />
             ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-4-7 4V5z"
-                />
-              </svg>
+              <Bookmark className="h-5 w-5" />
             )}
             {isBookmarked ? 'Bookmarked' : 'Bookmark'}
           </button>

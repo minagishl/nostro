@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { Search, Bookmark, Info } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
 import { LoginForm } from '@/components/nostr/LoginForm';
 
@@ -15,24 +16,33 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Nostro</h1>
             </Link>
             {publicKey && (
-              <nav className="space-x-6">
+              <nav className="flex space-x-6">
                 <Link
                   href="/search"
                   className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                 >
-                  Search
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4" />
+                    <span>Search</span>
+                  </div>
                 </Link>
                 <Link
                   href="/bookmarks"
                   className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                 >
-                  Bookmarks
+                  <div className="flex items-center gap-2">
+                    <Bookmark className="h-4 w-4" />
+                    <span>Bookmarks</span>
+                  </div>
                 </Link>
                 <Link
                   href="/about"
                   className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                 >
-                  About
+                  <div className="flex items-center gap-2">
+                    <Info className="h-4 w-4" />
+                    <span>About</span>
+                  </div>
                 </Link>
               </nav>
             )}

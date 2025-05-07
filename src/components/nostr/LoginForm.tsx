@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { LogIn, Key } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
 import { checkNostrProvider } from '@/utils/nostr';
 
@@ -31,7 +32,10 @@ export const LoginForm = () => {
           onClick={loginWithExtension}
           className="w-full rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-600"
         >
-          Login with Extension
+          <div className="flex items-center justify-center gap-2">
+            <LogIn className="h-5 w-5" />
+            <span>Login with Extension</span>
+          </div>
         </button>
       )}
 
@@ -48,9 +52,12 @@ export const LoginForm = () => {
 
       <form onSubmit={handlePrivateKeySubmit} className="space-y-4">
         <div>
-          <label htmlFor="privateKey" className="block text-sm font-medium text-gray-700">
-            Private Key
-          </label>
+          <div className="flex items-center gap-2">
+            <Key className="h-4 w-4 text-gray-700" />
+            <label htmlFor="privateKey" className="block text-sm font-medium text-gray-700">
+              Private Key
+            </label>
+          </div>
           <input
             type="password"
             id="privateKey"
@@ -64,7 +71,10 @@ export const LoginForm = () => {
           type="submit"
           className="w-full rounded bg-gray-800 px-4 py-2 font-bold text-white hover:bg-gray-900"
         >
-          Login with Private Key
+          <div className="flex items-center justify-center gap-2">
+            <LogIn className="h-5 w-5" />
+            <span>Login with Private Key</span>
+          </div>
         </button>
       </form>
     </div>
