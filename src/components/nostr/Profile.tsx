@@ -53,7 +53,16 @@ const formatDisplayIdentifier = (identifier: string | undefined, pubkey: string)
 };
 
 export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) => {
-  const { profiles, loadProfile, loadUserEvents, events, repostNote } = useNostrStore();
+  const {
+    profiles,
+    loadProfile,
+    loadUserEvents,
+    events,
+    repostNote,
+    bookmarks,
+    loadBookmarks,
+    updateBookmarks,
+  } = useNostrStore();
   const [replyingTo, setReplyingTo] = useState<Event | null>(null);
 
   useEffect(() => {
@@ -70,6 +79,15 @@ export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) =
   const getUserProfileImage = (pubkey: string) => profiles[pubkey]?.picture || '';
   const formatDate = (timestamp: number) => new Date(timestamp * 1000).toLocaleString();
   const [showEmojiPickerId, setShowEmojiPickerId] = useState<string | null>(null);
+
+  // Bookmark: use kind 30001 from useNostrStore
+  useEffect(() => {
+    loadBookmarks();
+  }, [loadBookmarks]);
+  const handleToggleBookmark = (eventId: string) => {
+    const isBookmarked = bookmarks.includes(eventId);
+    updateBookmarks(eventId, !isBookmarked);
+  };
 
   return (
     <div className="space-y-6">
@@ -128,6 +146,8 @@ export const Profile: React.FC<ProfileProps> = ({ pubkey, displayIdentifier }) =
             emojiOptions={['👍', '❤️', '😂', '🙌', '🎉', '😮', '😢', '🔥']}
             showEmojiPickerId={showEmojiPickerId}
             setShowEmojiPickerId={setShowEmojiPickerId}
+            isBookmarked={bookmarks.includes(event.id)}
+            onToggleBookmark={handleToggleBookmark}
           />
         ))}
         {userEvents.length === 0 && (

@@ -42,6 +42,9 @@ export interface NostrState {
   repostNote: (event: Event) => Promise<void>;
   getRepostedEvent: (repostEvent: Event) => Promise<Event | null>;
   publishReaction: (emoji: string, targetEvent: Event) => Promise<void>;
+  bookmarks: string[];
+  loadBookmarks: () => Promise<void>;
+  updateBookmarks: (eventId: string, add: boolean) => Promise<void>;
 }
 
 export interface NostrJsonResponse {

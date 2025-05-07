@@ -23,6 +23,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   Search
                 </Link>
                 <Link
+                  href="/bookmarks"
+                  className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                >
+                  Bookmarks
+                </Link>
+                <Link
                   href="/about"
                   className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                 >

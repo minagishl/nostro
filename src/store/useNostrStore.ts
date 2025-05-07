@@ -337,4 +337,64 @@ export const useNostrStore = create<NostrState>((set, get) => ({
       targetEvent,
     );
   },
+
+  // Bookmarks
+  bookmarks: [],
+  loadBookmarks: async () => {
+    const { pool, relays, publicKey } = get();
+    if (!publicKey) return;
+    const filter: Filter = {
+      kinds: [30001],
+      authors: [publicKey],
+      limit: 1,
+    };
+    const events = await pool.querySync(relays, filter);
+    if (events.length > 0) {
+      // Extract ['e', <eventId>] from the tags of kind 30001
+      const ids = events[0].tags
+        .filter((tag: string[]) => tag[0] === 'e')
+        .map((tag: string[]) => tag[1]);
+      set({ bookmarks: ids });
+    } else {
+      set({ bookmarks: [] });
+    }
+  },
+
+  updateBookmarks: async (eventId: string, add: boolean) => {
+    const { pool, relays, publicKey, privateKey, isExtensionLogin, bookmarks } = get();
+    if (!publicKey) return;
+    let newBookmarks: string[];
+    if (add) {
+      newBookmarks = Array.from(new Set([...bookmarks, eventId]));
+    } else {
+      newBookmarks = bookmarks.filter((id) => id !== eventId);
+    }
+
+    // Publish a kind 30001 event
+    const baseEvent = {
+      kind: 30001,
+      pubkey: publicKey,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: newBookmarks.map((id) => ['e', id]),
+      content: '',
+    };
+
+    const unsignedEvent: Event = {
+      ...baseEvent,
+      id: getEventHash(baseEvent),
+      sig: '',
+    };
+
+    let eventToPublish = unsignedEvent;
+    if (isExtensionLogin) {
+      const signedEvent = await signEventWithExtension(unsignedEvent);
+      if (!signedEvent) return;
+      eventToPublish = signedEvent;
+    } else if (!privateKey) {
+      return;
+    }
+
+    await Promise.all(relays.map((relay) => pool.publish([relay], eventToPublish)));
+    set({ bookmarks: newBookmarks });
+  },
 }));

@@ -20,6 +20,9 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
     getRepostedEvent,
     unsubscribe,
     publishReaction,
+    bookmarks,
+    loadBookmarks,
+    updateBookmarks,
   } = useNostrStore();
   const events = propEvents || storeEvents;
   const [displayCount, setDisplayCount] = useState(10);
@@ -31,6 +34,15 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
   const [repostedEventsState, setRepostedEventsState] = useState<Record<string, NostrEvent>>({});
   const [showEmojiPickerId, setShowEmojiPickerId] = useState<string | null>(null);
   const emojiOptions = ['👍', '❤️', '😂', '🙌', '🎉', '😮', '😢', '🔥'];
+
+  useEffect(() => {
+    loadBookmarks();
+  }, [loadBookmarks]);
+
+  const handleToggleBookmark = (eventId: string) => {
+    const isBookmarked = bookmarks.includes(eventId);
+    updateBookmarks(eventId, !isBookmarked);
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -211,6 +223,8 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
             emojiOptions={emojiOptions}
             showEmojiPickerId={showEmojiPickerId}
             setShowEmojiPickerId={setShowEmojiPickerId}
+            isBookmarked={bookmarks.includes(event.id)}
+            onToggleBookmark={handleToggleBookmark}
           />
         );
       })}

@@ -21,6 +21,8 @@ interface PostProps {
   showEmojiPickerId?: string | null;
   setShowEmojiPickerId?: (id: string | null) => void;
   onCloseReply?: () => void;
+  isBookmarked: boolean;
+  onToggleBookmark: (eventId: string) => void;
 }
 
 export const Post: React.FC<PostProps> = ({
@@ -39,6 +41,8 @@ export const Post: React.FC<PostProps> = ({
   showEmojiPickerId,
   setShowEmojiPickerId,
   onCloseReply,
+  isBookmarked,
+  onToggleBookmark,
 }) => {
   const isRepost = event.kind === 6 && originalEvent;
   const displayEvent = isRepost ? originalEvent! : event;
@@ -161,6 +165,38 @@ export const Post: React.FC<PostProps> = ({
               <path d="M21 13v2a4 4 0 0 1-4 4H3" />
             </svg>
             Repost
+          </button>
+          <button
+            onClick={() => onToggleBookmark(event.id)}
+            className={`flex items-center gap-2 ${isBookmarked ? 'text-yellow-500' : 'text-gray-500 hover:text-yellow-500'} dark:text-gray-400 dark:hover:text-yellow-400`}
+            aria-label={isBookmarked ? 'ブックマーク解除' : 'ブックマーク'}
+          >
+            {isBookmarked ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M5 3a2 2 0 00-2 2v12l7-4 7 4V5a2 2 0 00-2-2H5z" />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-4-7 4V5z"
+                />
+              </svg>
+            )}
+            {isBookmarked ? 'Bookmarked' : 'Bookmark'}
           </button>
           {showReaction && onReact && setShowEmojiPickerId && (
             <div className="relative">
