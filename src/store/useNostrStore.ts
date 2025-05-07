@@ -156,8 +156,15 @@ export const useNostrStore = create<NostrState>((set, get) => ({
   },
 
   followUser: async (pubkey: string) => {
-    const { pool, relays, publicKey, privateKey, following, isExtensionLogin } = get();
+    const { pool, relays, publicKey, privateKey, isExtensionLogin, loadFollowing } = get();
     if (!publicKey) return;
+
+    // Get the latest following list
+    await loadFollowing();
+    const { following } = get();
+
+    // If already following, do nothing
+    if (following.includes(pubkey)) return;
 
     const newFollowing = [...following, pubkey];
     const baseEvent = {
