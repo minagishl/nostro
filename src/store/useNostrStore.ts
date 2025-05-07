@@ -1,175 +1,10 @@
 import { create } from 'zustand';
 import { SimplePool, getEventHash, getPublicKey, type Event, type Filter } from 'nostr-tools';
 import { getPublicKeyFromExtension, signEventWithExtension } from '../utils/nostr';
-
-const generatePrivateKey = async (): Promise<Uint8Array> => {
-  return crypto.getRandomValues(new Uint8Array(32));
-};
-
-const bytesToHex = (bytes: Uint8Array): string => {
-  return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-};
-
-const hexToBytes = (hex: string): Uint8Array => {
-  return new Uint8Array(hex.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || []);
-};
-
-interface ProfileMetadata {
-  name?: string;
-  about?: string;
-  picture?: string;
-  nip05?: string;
-}
-
-type Subscription = {
-  unsub: () => void;
-};
-
-interface NostrState {
-  pool: SimplePool;
-  publicKey: string | null;
-  privateKey: string | null;
-  isExtensionLogin: boolean;
-  relays: string[];
-  events: Event[];
-  repostEvents: Record<string, Event>;
-  searchResults: Event[];
-  profiles: Record<string, ProfileMetadata>;
-  nip05ToPubkey: Record<string, string>;
-  following: string[];
-  subscription: Subscription | null;
-  nostrJsonCache: Record<string, unknown>;
-  generateKeys: () => Promise<void>;
-  setKeys: (privateKey: string) => void;
-  loginWithExtension: () => Promise<void>;
-  publishNote: (content: string) => Promise<void>;
-  loadEvents: () => Promise<void>;
-  unsubscribe: () => void;
-  loadUserEvents: (pubkey: string) => Promise<void>;
-  loadProfile: (pubkey: string) => Promise<void>;
-  lookupNip05: (identifier: string) => Promise<string | null>;
-  searchEvents: (query: string) => Promise<void>;
-  loadFollowing: () => Promise<void>;
-  followUser: (pubkey: string) => Promise<void>;
-  unfollowUser: (pubkey: string) => Promise<void>;
-  replyToNote: (content: string, replyTo: Event) => Promise<void>;
-  repostNote: (event: Event) => Promise<void>;
-  getRepostedEvent: (repostEvent: Event) => Promise<Event | null>;
-}
-
-// Cache for ongoing fetch promises to prevent duplicate requests
-const fetchPromiseCache: Record<string, Promise<unknown>> = {};
-
-interface NostrJsonResponse {
-  names: Record<string, string>;
-}
-
-async function verifyNip05(
-  identifier: string,
-  pubkey: string,
-  cache: Record<string, unknown>,
-): Promise<boolean> {
-  try {
-    const [username, domain] = identifier.split('@');
-    if (!username || !domain) return false;
-
-    const cacheKey = `${domain}:${username}`;
-    let data: NostrJsonResponse;
-
-    if (cache[cacheKey]) {
-      data = cache[cacheKey] as NostrJsonResponse;
-    } else {
-      // Check if we already have a fetch in progress
-      if (!fetchPromiseCache[cacheKey]) {
-        // Create a new fetch promise and store it in the cache
-        fetchPromiseCache[cacheKey] = fetch(
-          `https://${domain}/.well-known/nostr.json?name=${username}`,
-        )
-          .then((response) => response.json())
-          .then((jsonData) => {
-            // Store in the regular cache
-            cache[cacheKey] = jsonData;
-            // Remove from promise cache after completion
-            delete fetchPromiseCache[cacheKey];
-            return jsonData;
-          })
-          .catch((err) => {
-            // Clean up on error
-            delete fetchPromiseCache[cacheKey];
-            throw err;
-          });
-      }
-
-      // Wait for the promise to resolve
-      data = (await fetchPromiseCache[cacheKey]) as NostrJsonResponse;
-    }
-
-    return data?.names?.[username] === pubkey;
-  } catch (e) {
-    console.error('Failed to verify NIP-05:', e);
-    return false;
-  }
-}
-
-async function lookupNip05Pubkey(
-  identifier: string,
-  cache: Record<string, unknown>,
-): Promise<string | null> {
-  try {
-    let username: string;
-    let domain: string;
-
-    // Skip npub identifiers
-    if (identifier.startsWith('npub')) return null;
-
-    if (identifier.includes('@')) {
-      [username, domain] = identifier.split('@');
-      if (!username || !domain) return null;
-    } else {
-      // For domain-only identifiers, use '_' as username
-      username = '_';
-      domain = identifier;
-    }
-
-    const cacheKey = `${domain}:${username}`;
-    let data: NostrJsonResponse;
-
-    if (cache[cacheKey]) {
-      data = cache[cacheKey] as NostrJsonResponse;
-    } else {
-      // Check if we already have a fetch in progress
-      if (!fetchPromiseCache[cacheKey]) {
-        // Create a new fetch promise and store it in the cache
-        fetchPromiseCache[cacheKey] = fetch(
-          `https://${domain}/.well-known/nostr.json?name=${username}`,
-        )
-          .then((response) => response.json())
-          .then((jsonData) => {
-            // Store in the regular cache
-            cache[cacheKey] = jsonData;
-            // Remove from promise cache after completion
-            delete fetchPromiseCache[cacheKey];
-            return jsonData;
-          })
-          .catch((err) => {
-            // Clean up on error
-            delete fetchPromiseCache[cacheKey];
-            throw err;
-          });
-      }
-
-      // Wait for the promise to resolve
-      data = (await fetchPromiseCache[cacheKey]) as NostrJsonResponse;
-    }
-
-    return data?.names?.[username] || null;
-  } catch (e) {
-    console.error('Failed to lookup NIP-05:', e);
-    return null;
-  }
-}
+import { type NostrState, type Subscription } from './nostr/types';
+import { generatePrivateKey, bytesToHex, hexToBytes } from './nostr/utils/crypto';
+import { verifyNip05, lookupNip05Pubkey } from './nostr/services/nip05';
+import { publishNote, replyToNote, repostNote } from './nostr/services/events';
 
 export const useNostrStore = create<NostrState>((set, get) => ({
   pool: new SimplePool(),
@@ -217,33 +52,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 
   publishNote: async (content: string) => {
     const { pool, privateKey, publicKey, relays, isExtensionLogin } = get();
-    if (!publicKey) return;
-
-    const baseEvent = {
-      kind: 1,
-      pubkey: publicKey,
-      created_at: Math.floor(Date.now() / 1000),
-      tags: [],
-      content,
-    };
-
-    const unsignedEvent: Event = {
-      ...baseEvent,
-      id: getEventHash(baseEvent),
-      sig: '',
-    };
-
-    let eventToPublish = unsignedEvent;
-
-    if (isExtensionLogin) {
-      const signedEvent = await signEventWithExtension(unsignedEvent);
-      if (!signedEvent) return;
-      eventToPublish = signedEvent;
-    } else if (!privateKey) {
-      return;
-    }
-
-    await Promise.all(relays.map((relay) => pool.publish([relay], eventToPublish)));
+    await publishNote(pool, privateKey, publicKey, relays, isExtensionLogin, content);
   },
 
   unsubscribe: () => {
@@ -278,7 +87,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
     // First, load initial events synchronously
     const initialEvents = await pool.querySync(selectedRelays, filter);
     set({
-      events: initialEvents.sort((a, b) => b.created_at - a.created_at),
+      events: initialEvents.sort((a: Event, b: Event) => b.created_at - a.created_at),
     });
 
     // Then set up subscription for real-time updates
@@ -295,7 +104,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
                 kinds: [1],
               };
 
-              void pool.get(selectedRelays, originalFilter).then((originalEvent) => {
+              void pool.get(selectedRelays, originalFilter).then((originalEvent: Event | null) => {
                 if (originalEvent) {
                   set((state) => ({
                     repostEvents: { ...state.repostEvents, [event.id]: originalEvent },
@@ -313,7 +122,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
             }
             const newEvents = [event, ...state.events];
             return {
-              events: newEvents.sort((a, b) => b.created_at - a.created_at),
+              events: newEvents.sort((a: Event, b: Event) => b.created_at - a.created_at),
             };
           });
         },
@@ -339,7 +148,9 @@ export const useNostrStore = create<NostrState>((set, get) => ({
 
     const events = await pool.querySync(relays, filter);
     if (events.length > 0) {
-      const contactList = events[0].tags.filter((tag) => tag[0] === 'p').map((tag) => tag[1]);
+      const contactList = events[0].tags
+        .filter((tag: string[]) => tag[0] === 'p')
+        .map((tag: string[]) => tag[1]);
       set({ following: contactList });
     }
   },
@@ -419,7 +230,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
     };
 
     const events = await pool.querySync(relays, filter);
-    set({ events: events.sort((a, b) => b.created_at - a.created_at) });
+    set({ events: events.sort((a: Event, b: Event) => b.created_at - a.created_at) });
   },
 
   loadProfile: async (pubkey: string) => {
@@ -436,7 +247,7 @@ export const useNostrStore = create<NostrState>((set, get) => ({
     if (events.length > 0) {
       const profileEvent = events[0];
       try {
-        const metadata: ProfileMetadata = JSON.parse(profileEvent.content);
+        const metadata = JSON.parse(profileEvent.content);
         if (metadata.nip05) {
           const isVerified = await verifyNip05(metadata.nip05, pubkey, get().nostrJsonCache);
           if (isVerified) {
@@ -480,75 +291,17 @@ export const useNostrStore = create<NostrState>((set, get) => ({
     };
 
     const events = await pool.querySync(relays, filter);
-    set({ searchResults: events.sort((a, b) => b.created_at - a.created_at) });
+    set({ searchResults: events.sort((a: Event, b: Event) => b.created_at - a.created_at) });
   },
 
   replyToNote: async (content: string, replyTo: Event) => {
     const { pool, privateKey, publicKey, relays, isExtensionLogin } = get();
-    if (!publicKey) return;
-
-    const baseEvent = {
-      kind: 1,
-      pubkey: publicKey,
-      created_at: Math.floor(Date.now() / 1000),
-      tags: [
-        ['e', replyTo.id],
-        ['p', replyTo.pubkey],
-      ],
-      content,
-    };
-
-    const unsignedEvent: Event = {
-      ...baseEvent,
-      id: getEventHash(baseEvent),
-      sig: '',
-    };
-
-    let eventToPublish = unsignedEvent;
-
-    if (isExtensionLogin) {
-      const signedEvent = await signEventWithExtension(unsignedEvent);
-      if (!signedEvent) return;
-      eventToPublish = signedEvent;
-    } else if (!privateKey) {
-      return;
-    }
-
-    await Promise.all(relays.map((relay) => pool.publish([relay], eventToPublish)));
+    await replyToNote(pool, privateKey, publicKey, relays, isExtensionLogin, content, replyTo);
   },
 
   repostNote: async (event: Event) => {
     const { pool, privateKey, publicKey, relays, isExtensionLogin } = get();
-    if (!publicKey) return;
-
-    const baseEvent = {
-      kind: 6,
-      pubkey: publicKey,
-      created_at: Math.floor(Date.now() / 1000),
-      tags: [
-        ['e', event.id],
-        ['p', event.pubkey],
-      ],
-      content: '',
-    };
-
-    const unsignedEvent: Event = {
-      ...baseEvent,
-      id: getEventHash(baseEvent),
-      sig: '',
-    };
-
-    let eventToPublish = unsignedEvent;
-
-    if (isExtensionLogin) {
-      const signedEvent = await signEventWithExtension(unsignedEvent);
-      if (!signedEvent) return;
-      eventToPublish = signedEvent;
-    } else if (!privateKey) {
-      return;
-    }
-
-    await Promise.all(relays.map((relay) => pool.publish([relay], eventToPublish)));
+    await repostNote(pool, privateKey, publicKey, relays, isExtensionLogin, event);
   },
 
   getRepostedEvent: async (repostEvent: Event): Promise<Event | null> => {
