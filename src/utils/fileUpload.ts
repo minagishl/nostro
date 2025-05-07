@@ -56,7 +56,9 @@ export async function uploadImageToNostr(
         sig: '',
       };
       const signedEvent = await window.nostr.signEvent(event);
-      const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(signedEvent))));
+      const b64 = btoa(
+        String.fromCharCode(...new TextEncoder().encode(JSON.stringify(signedEvent))),
+      );
       authorization = `Nostr ${b64}`;
     } else if (privateKey) {
       // Signing with private key
