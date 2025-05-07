@@ -22,6 +22,7 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
     repostEvents,
     getRepostedEvent,
     unsubscribe,
+    publishReaction,
   } = useNostrStore();
   const events = propEvents || storeEvents;
   const [displayCount, setDisplayCount] = useState(10);
@@ -31,6 +32,8 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
   const [usernameCacheMap, setUsernameCacheMap] = useState<Record<string, string>>({});
   const [profileImageCacheMap, setProfileImageCacheMap] = useState<Record<string, string>>({});
   const [repostedEventsState, setRepostedEventsState] = useState<Record<string, NostrEvent>>({});
+  const [showEmojiPickerId, setShowEmojiPickerId] = useState<string | null>(null);
+  const emojiOptions = ['👍', '❤️', '😂', '🙌', '🎉', '😮', '😢', '🔥'];
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -341,6 +344,38 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
                   </svg>
                   Repost
                 </button>
+                <div className="relative">
+                  <button
+                    onClick={() =>
+                      setShowEmojiPickerId((prev) => (prev === event.id ? null : event.id))
+                    }
+                    className="flex items-center gap-2 text-gray-500 hover:text-yellow-500 dark:text-gray-400 dark:hover:text-yellow-400"
+                  >
+                    <span role="img" aria-label="React">
+                      😊
+                    </span>{' '}
+                    React
+                  </button>
+                  {showEmojiPickerId === event.id && (
+                    <div className="absolute z-10 mt-2 flex gap-1 rounded bg-white p-2 shadow dark:bg-gray-800">
+                      {emojiOptions.map((emoji) => (
+                        <button
+                          key={emoji}
+                          className="text-xl transition-transform hover:scale-125"
+                          onClick={async () => {
+                            await publishReaction(
+                              emoji,
+                              isRepost(event) && originalEvent ? originalEvent : event,
+                            );
+                            setShowEmojiPickerId(null);
+                          }}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
               {replyingTo?.id ===
                 (isRepost(event) && originalEvent ? originalEvent.id : event.id) && (

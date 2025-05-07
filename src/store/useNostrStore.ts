@@ -4,7 +4,7 @@ import { getPublicKeyFromExtension, signEventWithExtension } from '../utils/nost
 import { type NostrState, type Subscription } from './nostr/types';
 import { generatePrivateKey, bytesToHex, hexToBytes } from './nostr/utils/crypto';
 import { verifyNip05, lookupNip05Pubkey } from './nostr/services/nip05';
-import { publishNote, replyToNote, repostNote } from './nostr/services/events';
+import { publishNote, replyToNote, repostNote, publishReaction } from './nostr/services/events';
 
 export const useNostrStore = create<NostrState>((set, get) => ({
   pool: new SimplePool(),
@@ -316,5 +316,18 @@ export const useNostrStore = create<NostrState>((set, get) => ({
     // do not make individual requests; return null if not already fetched
     console.log('Original event not found in cache');
     return null;
+  },
+
+  publishReaction: async (emoji: string, targetEvent: Event) => {
+    const { pool, privateKey, publicKey, relays, isExtensionLogin } = get();
+    await publishReaction(
+      pool,
+      privateKey,
+      publicKey,
+      relays,
+      isExtensionLogin,
+      emoji,
+      targetEvent,
+    );
   },
 }));
