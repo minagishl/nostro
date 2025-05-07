@@ -59,6 +59,13 @@ interface NostrState {
   getRepostedEvent: (repostEvent: Event) => Promise<Event | null>;
 }
 
+// Cache for ongoing fetch promises to prevent duplicate requests
+const fetchPromiseCache: Record<string, Promise<unknown>> = {};
+
+interface NostrJsonResponse {
+  names: Record<string, string>;
+}
+
 async function verifyNip05(
   identifier: string,
   pubkey: string,
@@ -69,14 +76,34 @@ async function verifyNip05(
     if (!username || !domain) return false;
 
     const cacheKey = `${domain}:${username}`;
-    let data;
+    let data: NostrJsonResponse;
 
     if (cache[cacheKey]) {
-      data = cache[cacheKey];
+      data = cache[cacheKey] as NostrJsonResponse;
     } else {
-      const response = await fetch(`https://${domain}/.well-known/nostr.json?name=${username}`);
-      data = await response.json();
-      cache[cacheKey] = data;
+      // Check if we already have a fetch in progress
+      if (!fetchPromiseCache[cacheKey]) {
+        // Create a new fetch promise and store it in the cache
+        fetchPromiseCache[cacheKey] = fetch(
+          `https://${domain}/.well-known/nostr.json?name=${username}`,
+        )
+          .then((response) => response.json())
+          .then((jsonData) => {
+            // Store in the regular cache
+            cache[cacheKey] = jsonData;
+            // Remove from promise cache after completion
+            delete fetchPromiseCache[cacheKey];
+            return jsonData;
+          })
+          .catch((err) => {
+            // Clean up on error
+            delete fetchPromiseCache[cacheKey];
+            throw err;
+          });
+      }
+
+      // Wait for the promise to resolve
+      data = (await fetchPromiseCache[cacheKey]) as NostrJsonResponse;
     }
 
     return data?.names?.[username] === pubkey;
@@ -107,15 +134,36 @@ async function lookupNip05Pubkey(
     }
 
     const cacheKey = `${domain}:${username}`;
-    let data;
+    let data: NostrJsonResponse;
 
     if (cache[cacheKey]) {
-      data = cache[cacheKey];
+      data = cache[cacheKey] as NostrJsonResponse;
     } else {
-      const response = await fetch(`https://${domain}/.well-known/nostr.json?name=${username}`);
-      data = await response.json();
-      cache[cacheKey] = data;
+      // Check if we already have a fetch in progress
+      if (!fetchPromiseCache[cacheKey]) {
+        // Create a new fetch promise and store it in the cache
+        fetchPromiseCache[cacheKey] = fetch(
+          `https://${domain}/.well-known/nostr.json?name=${username}`,
+        )
+          .then((response) => response.json())
+          .then((jsonData) => {
+            // Store in the regular cache
+            cache[cacheKey] = jsonData;
+            // Remove from promise cache after completion
+            delete fetchPromiseCache[cacheKey];
+            return jsonData;
+          })
+          .catch((err) => {
+            // Clean up on error
+            delete fetchPromiseCache[cacheKey];
+            throw err;
+          });
+      }
+
+      // Wait for the promise to resolve
+      data = (await fetchPromiseCache[cacheKey]) as NostrJsonResponse;
     }
+
     return data?.names?.[username] || null;
   } catch (e) {
     console.error('Failed to lookup NIP-05:', e);
