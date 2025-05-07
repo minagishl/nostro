@@ -163,7 +163,6 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
     }
 
     if (profiles[pubkey]?.name) {
-      setUsernameCacheMap((prev) => ({ ...prev, [pubkey]: profiles[pubkey].name! }));
       return profiles[pubkey].name;
     }
 
@@ -176,7 +175,6 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
     }
 
     if (profiles[pubkey]?.picture) {
-      setProfileImageCacheMap((prev) => ({ ...prev, [pubkey]: profiles[pubkey].picture! }));
       return profiles[pubkey].picture;
     }
 
