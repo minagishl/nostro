@@ -115,7 +115,7 @@ export const Post: React.FC<PostProps> = ({
                 </span>
               </div>
               <div
-                className="mt-1 text-[15px] leading-relaxed break-words whitespace-pre-wrap text-gray-900 dark:text-gray-100"
+                className="mt-1 max-w-full text-[15px] leading-relaxed break-words break-all whitespace-pre-wrap text-gray-900 dark:text-gray-100"
                 dangerouslySetInnerHTML={{
                   __html: formatContent(displayEvent.content),
                 }}
