@@ -1,12 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNostrStore } from '@/store/useNostrStore';
-import { uploadImageToNostr } from '@/utils/fileUpload';
+import {
+  uploadImageToNostr,
+  getUploadUrl,
+  setUploadUrl,
+  DEFAULT_UPLOAD_URL,
+  NOSTRCHECK_UPLOAD_URL,
+} from '@/utils/fileUpload';
 
 export const PostForm: React.FC = () => {
   const [content, setContent] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadUrl, setUploadUrlState] = useState<string>(
+    typeof window !== 'undefined' ? getUploadUrl() : DEFAULT_UPLOAD_URL,
+  );
   const { publicKey, privateKey, isExtensionLogin, generateKeys, publishNote } = useNostrStore();
+
+  // Keep uploadUrl in sync with localStorage
+  useEffect(() => {
+    setUploadUrlState(getUploadUrl());
+  }, []);
+
+  const handleUploadUrlChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
+    const value = e.target.value;
+    setUploadUrl(value);
+    setUploadUrlState(value);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +48,7 @@ export const PostForm: React.FC = () => {
         publicKey,
         privateKey,
         isExtensionLogin,
+        uploadUrl,
       );
 
       if (url) {
@@ -87,6 +108,36 @@ export const PostForm: React.FC = () => {
                     d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                   ></path>
                 </svg>
+              )}
+            </div>
+            {/* Upload destination selector */}
+            <div className="mb-2 flex items-center gap-2">
+              <label
+                htmlFor="upload-destination"
+                className="text-sm text-gray-700 dark:text-gray-300"
+              >
+                Upload destination:
+              </label>
+              <select
+                id="upload-destination"
+                value={uploadUrl}
+                onChange={handleUploadUrlChange}
+                className="rounded border px-2 py-1 text-sm dark:bg-gray-800 dark:text-white"
+              >
+                <option value={DEFAULT_UPLOAD_URL}>nostr.build</option>
+                <option value={NOSTRCHECK_UPLOAD_URL}>cdn.nostrcheck.me</option>
+                <option value="custom">Custom</option>
+              </select>
+              {uploadUrl === 'custom' && (
+                <input
+                  type="text"
+                  placeholder="Enter custom URL"
+                  className="rounded border px-2 py-1 text-sm dark:bg-gray-800 dark:text-white"
+                  onChange={(e) =>
+                    handleUploadUrlChange(e as unknown as React.ChangeEvent<HTMLSelectElement>)
+                  }
+                  onBlur={(e) => setUploadUrl(e.target.value)}
+                />
               )}
             </div>
             {uploadError && <div className="mb-2 text-sm text-red-500">{uploadError}</div>}

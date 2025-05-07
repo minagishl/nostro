@@ -1,7 +1,28 @@
 import type { Event, EventTemplate } from 'nostr-tools';
 import { getToken as getNip98Token } from 'nostr-tools/nip98';
 
-export const NIP96_API_URL = 'https://nostr.build/api/v2/nip96/upload';
+// Key for localStorage
+const UPLOAD_URL_KEY = 'nostro:uploadUrl';
+
+// Default upload URLs
+export const DEFAULT_UPLOAD_URL = 'https://nostr.build/api/v2/nip96/upload';
+export const NOSTRCHECK_UPLOAD_URL = 'https://cdn.nostrcheck.me/';
+
+// Get upload URL from localStorage or default
+export function getUploadUrl(): string {
+  if (typeof window !== 'undefined') {
+    const stored = window.localStorage.getItem(UPLOAD_URL_KEY);
+    if (stored) return stored;
+  }
+  return DEFAULT_UPLOAD_URL;
+}
+
+// Set upload URL in localStorage
+export function setUploadUrl(url: string) {
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem(UPLOAD_URL_KEY, url);
+  }
+}
 
 // Calculate the SHA256 hash of an image file according to NIP96
 export async function getFileSHA256(file: File): Promise<Uint8Array> {
@@ -21,6 +42,7 @@ export function base64encode(bytes: Uint8Array): string {
  * @param publicKey The user's public key
  * @param privateKey The user's private key
  * @param isExtensionLogin Whether login is via browser extension
+ * @param uploadUrl Optional custom upload URL, defaults to getUploadUrl()
  * @returns The uploaded image URL (on success) or null (on failure)
  */
 export async function uploadImageToNostr(
@@ -28,6 +50,7 @@ export async function uploadImageToNostr(
   publicKey: string,
   privateKey: string | null,
   isExtensionLogin: boolean,
+  uploadUrl?: string, // optional, fallback to getUploadUrl()
 ): Promise<{ url: string | null; error: string | null }> {
   try {
     // Calculate the file hash
@@ -35,7 +58,7 @@ export async function uploadImageToNostr(
     const hashBase64 = base64encode(hashBytes);
 
     const method = 'POST';
-    const url = NIP96_API_URL;
+    const url = uploadUrl || getUploadUrl();
     const payload = { hash: hashBase64 };
     let authorization = '';
 
@@ -90,7 +113,7 @@ export async function uploadImageToNostr(
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await fetch(NIP96_API_URL, {
+    const res = await fetch(url, {
       method: 'POST',
       body: formData,
       headers: {
@@ -98,16 +121,44 @@ export async function uploadImageToNostr(
       },
     });
 
-    const data = await res.json();
+    // If using nostr.build, expect NIP-96 response
+    if (url.includes('nostr.build')) {
+      const data = await res.json();
+      if (data.status === 'success' && data.nip94_event) {
+        const urlTag = data.nip94_event.tags.find((tag: [string, ...string[]]) => tag[0] === 'url');
+        if (urlTag) {
+          return { url: urlTag[1], error: null };
+        }
+      }
+      return { url: null, error: data.message || 'Upload failed' };
+    }
 
-    if (data.status === 'success' && data.nip94_event) {
-      const urlTag = data.nip94_event.tags.find((tag: [string, ...string[]]) => tag[0] === 'url');
-      if (urlTag) {
-        return { url: urlTag[1], error: null };
+    // If using nostrcheck CDN, just return the file URL if upload succeeded
+    if (url.startsWith('https://cdn.nostrcheck.me/')) {
+      if (res.ok) {
+        // The CDN returns the file URL in the Location header or as plain text
+        const location = res.headers.get('Location');
+        if (location) {
+          return { url: location, error: null };
+        }
+        const text = await res.text();
+        if (text.startsWith('http')) {
+          return { url: text.trim(), error: null };
+        }
+        return { url: null, error: 'No URL returned from CDN' };
+      } else {
+        return { url: null, error: 'Upload failed' };
       }
     }
 
-    return { url: null, error: data.message || 'Upload failed' };
+    // Fallback: try to parse as JSON and get a URL
+    try {
+      const data = await res.json();
+      if (data.url) return { url: data.url, error: null };
+      return { url: null, error: data.message || 'Upload failed' };
+    } catch {
+      return { url: null, error: 'Upload failed' };
+    }
   } catch (err: unknown) {
     if (err instanceof Error) {
       return { url: null, error: err.message || 'Upload failed' };
