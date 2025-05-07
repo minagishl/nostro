@@ -73,9 +73,10 @@ export async function uploadImageToNostr(
         };
         const serializeEvent = (evt: EventTemplate & { pubkey: string }) =>
           JSON.stringify([0, evt.pubkey, evt.created_at, evt.kind, evt.tags, evt.content]);
-        const { sha256 } = await import('@noble/hashes/sha256');
         const utf8Encoder = new TextEncoder();
-        const idBytes = sha256(utf8Encoder.encode(serializeEvent(fullEvent)));
+        const idBytes = new Uint8Array(
+          await crypto.subtle.digest('SHA-256', utf8Encoder.encode(serializeEvent(fullEvent))),
+        );
         fullEvent.id = bytesToHex(idBytes);
         fullEvent.sig = bytesToHex(schnorr.sign(fullEvent.id, privateKey));
         return fullEvent;
