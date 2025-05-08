@@ -17,10 +17,11 @@ const link = tv({
 });
 
 type MenuItem = {
-  href: string;
-  icon: LucideIcon;
-  label: string;
+  href?: string;
+  icon?: LucideIcon;
+  label?: string;
   isLogout?: boolean;
+  element?: React.ReactNode;
 };
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -34,6 +35,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     { href: '/search', icon: Search, label: 'Search' },
     { href: '/bookmarks', icon: Bookmark, label: 'Bookmarks' },
     { href: '/about', icon: Info, label: 'About' },
+    {
+      element: <div key="divider" className="my-2 border-b border-gray-200 dark:border-gray-700" />,
+    },
     { href: '/preferences', icon: Settings, label: 'Preferences' },
   ];
 
@@ -62,16 +66,24 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           {publicKey && (
             <aside className="sticky top-0 h-dvh w-80 shrink-0 overflow-y-auto px-6 py-4 pl-4">
               <nav className="space-y-2">
-                {menuItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={link({ active: pathname === item.href })}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.label}</span>
-                  </Link>
-                ))}
+                {menuItems.map((item) => {
+                  if (item.element) {
+                    return item.element;
+                  }
+                  if (!item.href || !item.icon || !item.label) {
+                    return null;
+                  }
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={link({ active: pathname === item.href })}
+                    >
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
               </nav>
             </aside>
           )}
