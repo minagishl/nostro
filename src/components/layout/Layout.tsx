@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Search, Bookmark, Info, User, LogOut, Bell, Home } from 'lucide-react';
+import { Search, Bookmark, Info, User, LogOut, Bell, Home, Settings } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
 import { LoginForm } from '@/components/nostr/LoginForm';
 import { tv } from 'tailwind-variants';
@@ -75,6 +75,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 >
                   <Info className="h-5 w-5" />
                   <span>About</span>
+                </Link>
+                <Link
+                  href="/settings"
+                  className="flex items-center gap-2 rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
+                  <Settings className="h-5 w-5" />
+                  <span>Settings</span>
                 </Link>
                 <button
                   onClick={logout}
