@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Search, Bookmark, Info, User, LogOut } from 'lucide-react';
+import { Search, Bookmark, Info, User, LogOut, Bell } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
 import { LoginForm } from '@/components/nostr/LoginForm';
 
@@ -24,6 +24,15 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4" />
                     <span>Profile</span>
+                  </div>
+                </Link>
+                <Link
+                  href="/notifications"
+                  className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+                >
+                  <div className="flex items-center gap-2">
+                    <Bell className="h-4 w-4" />
+                    <span>Notifications</span>
                   </div>
                 </Link>
                 <Link
