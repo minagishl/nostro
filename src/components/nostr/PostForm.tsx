@@ -42,7 +42,7 @@ export const PostForm: React.FC = () => {
   };
 
   return (
-    <div className="min-h-fit rounded-lg bg-gray-100 dark:bg-gray-800">
+    <div className="rounded-lg bg-gray-100 dark:bg-gray-800">
       <div className="p-4">
         {!publicKey ? (
           <button
@@ -56,7 +56,7 @@ export const PostForm: React.FC = () => {
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="mb-4 min-h-16 w-full resize-none rounded-md bg-transparent text-sm text-gray-900 placeholder-gray-500 focus:ring-0 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400"
+              className="mb-4 field-sizing-content min-h-20 w-full resize-none overflow-hidden rounded-md bg-transparent text-sm text-gray-900 placeholder-gray-500 focus:ring-0 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400"
               placeholder="What's on your mind?"
             />
             <div className="flex items-center justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
