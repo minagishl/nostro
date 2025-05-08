@@ -11,10 +11,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="flex w-full">
-          <aside className="sticky top-0 h-dvh w-60 shrink-0 overflow-y-auto border-r border-gray-200 px-6 py-8 dark:border-gray-700">
+          <aside className="sticky top-0 h-dvh w-60 shrink-0 overflow-y-auto px-6 py-8">
             <nav className="space-y-2"></nav>
           </aside>
-          <main className="flex-1 overflow-y-auto py-8">
+          <main className="mt-4 flex-1 overflow-y-auto rounded-md border border-gray-200 py-4 dark:border-gray-700">
             <div
               className={
                 !publicKey ? 'flex h-full items-center justify-center' : 'mx-auto max-w-xl'
@@ -24,7 +24,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             </div>
           </main>
           {publicKey && (
-            <aside className="sticky top-0 h-dvh w-60 shrink-0 overflow-y-auto border-l border-gray-200 px-6 py-8 dark:border-gray-700">
+            <aside className="sticky top-0 h-dvh w-60 shrink-0 overflow-y-auto px-6 py-8">
               <nav className="space-y-2">
                 <Link
                   href="/"
