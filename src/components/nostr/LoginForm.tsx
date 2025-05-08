@@ -46,14 +46,17 @@ export const LoginForm = () => {
     <div className="mx-auto max-w-md space-y-4 p-4">
       <Label className="text-xl font-bold">Login</Label>
 
-      {hasExtension && (
-        <Button onClick={loginWithExtension} variant="primary" className="w-full">
-          <div className="flex items-center justify-center gap-2">
-            <LogIn className="h-5 w-5" />
-            <span>Login with Extension</span>
-          </div>
-        </Button>
-      )}
+      <Button
+        onClick={loginWithExtension}
+        variant="primary"
+        className="w-full"
+        disabled={!hasExtension}
+      >
+        <div className="flex items-center justify-center gap-2">
+          <LogIn className="h-5 w-5" />
+          <span>Login with Extension</span>
+        </div>
+      </Button>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
