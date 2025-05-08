@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { LogIn, Key } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
 import { checkNostrProvider } from '@/utils/nostr';
+import { Button } from '@/components/ui/Button';
 
 export const LoginForm = () => {
   const [privateKey, setPrivateKey] = useState('');
@@ -28,15 +29,12 @@ export const LoginForm = () => {
       <h2 className="text-xl font-bold">Login</h2>
 
       {hasExtension && (
-        <button
-          onClick={loginWithExtension}
-          className="w-full rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-600"
-        >
+        <Button onClick={loginWithExtension} variant="primary" className="w-full">
           <div className="flex items-center justify-center gap-2">
             <LogIn className="h-5 w-5" />
             <span>Login with Extension</span>
           </div>
-        </button>
+        </Button>
       )}
 
       <div className="relative">
@@ -67,15 +65,12 @@ export const LoginForm = () => {
             placeholder="Enter your private key in hex format"
           />
         </div>
-        <button
-          type="submit"
-          className="w-full rounded bg-gray-800 px-4 py-2 font-bold text-white hover:bg-gray-900"
-        >
+        <Button type="submit" variant="outline" className="w-full">
           <div className="flex items-center justify-center gap-2">
             <LogIn className="h-5 w-5" />
             <span>Login with Private Key</span>
           </div>
-        </button>
+        </Button>
       </form>
     </div>
   );
