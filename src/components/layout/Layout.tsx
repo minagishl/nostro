@@ -9,7 +9,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      <header className="bg-white shadow dark:bg-gray-800">
+      <header className="fixed top-0 z-10 w-full bg-white shadow dark:bg-gray-800">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <Link href="/">
@@ -18,9 +18,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           </div>
         </div>
       </header>
-      <div className="flex min-h-[calc(100vh-4rem)]">
+      <div className="flex pt-16">
         {publicKey && (
-          <aside className="w-64 bg-white shadow dark:bg-gray-800">
+          <aside className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-white shadow dark:bg-gray-800">
             <nav className="space-y-2 p-4">
               <Link
                 href={`/profile/${publicKey}`}
@@ -67,7 +67,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             </nav>
           </aside>
         )}
-        <main className="flex-1 p-6">
+        <main className={`flex-1 p-6 ${publicKey ? 'ml-64' : ''}`}>
           <div className="mx-auto max-w-2xl">{publicKey ? children : <LoginForm />}</div>
         </main>
       </div>
