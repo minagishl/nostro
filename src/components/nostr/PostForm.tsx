@@ -1,33 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Loader2, Image, Smile, Send } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
-import {
-  uploadImageToNostr,
-  getUploadUrl,
-  setUploadUrl,
-  DEFAULT_UPLOAD_URL,
-  NOSTRCHECK_UPLOAD_URL,
-} from '@/utils/fileUpload';
+import { uploadImageToNostr } from '@/utils/fileUpload';
 
 export const PostForm: React.FC = () => {
   const [content, setContent] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadUrl, setUploadUrlState] = useState<string>(
-    typeof window !== 'undefined' ? getUploadUrl() : DEFAULT_UPLOAD_URL,
-  );
   const { publicKey, privateKey, isExtensionLogin, generateKeys, publishNote } = useNostrStore();
-
-  // Keep uploadUrl in sync with localStorage
-  useEffect(() => {
-    setUploadUrlState(getUploadUrl());
-  }, []);
-
-  const handleUploadUrlChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
-    const value = e.target.value;
-    setUploadUrl(value);
-    setUploadUrlState(value);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +29,6 @@ export const PostForm: React.FC = () => {
         publicKey,
         privateKey,
         isExtensionLogin,
-        uploadUrl,
       );
 
       if (url) {
@@ -63,7 +42,7 @@ export const PostForm: React.FC = () => {
   };
 
   return (
-    <div className="mb-4 rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
+    <div className="min-h-fit rounded-lg bg-gray-100 dark:bg-gray-800">
       <div className="p-4">
         {!publicKey ? (
           <button
@@ -77,57 +56,41 @@ export const PostForm: React.FC = () => {
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="mb-4 w-full rounded border bg-transparent p-2 text-[15px] dark:border-gray-600 dark:text-white"
+              className="mb-4 min-h-16 w-full resize-none rounded-md bg-transparent text-sm text-gray-900 placeholder-gray-500 focus:ring-0 focus:outline-none dark:text-gray-100 dark:placeholder-gray-400"
               placeholder="What's on your mind?"
-              rows={3}
             />
-            <div className="mb-2 flex items-center gap-2">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                disabled={uploading}
-              />
-              {uploading && <Loader2 className="h-5 w-5 animate-spin text-gray-500" />}
-            </div>
-            {/* Upload destination selector */}
-            <div className="mb-2 flex items-center gap-2">
-              <label
-                htmlFor="upload-destination"
-                className="text-sm text-gray-700 dark:text-gray-300"
+            <div className="flex items-center justify-between border-t border-gray-200 pt-4 dark:border-gray-700">
+              <div className="flex items-center gap-4">
+                <label className="cursor-pointer text-gray-500 hover:text-indigo-500 dark:text-gray-400 dark:hover:text-indigo-400">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    disabled={uploading}
+                    className="hidden"
+                  />
+                  <div className="py-1">
+                    <Image className="h-4 w-4" />
+                  </div>
+                </label>
+                {uploading && <Loader2 className="h-4 w-4 animate-spin text-gray-500" />}
+                <button
+                  type="button"
+                  className="cursor-pointer text-gray-500 hover:text-indigo-500 dark:text-gray-400 dark:hover:text-indigo-400"
+                >
+                  <div className="py-1">
+                    <Smile className="h-4 w-4" />
+                  </div>
+                </button>
+              </div>
+              <button
+                type="submit"
+                className="rounded-md py-1 font-semibold text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-500"
               >
-                Upload destination:
-              </label>
-              <select
-                id="upload-destination"
-                value={uploadUrl}
-                onChange={handleUploadUrlChange}
-                className="rounded border px-2 py-1 text-sm dark:bg-gray-800 dark:text-white"
-              >
-                <option value={DEFAULT_UPLOAD_URL}>nostr.build</option>
-                <option value={NOSTRCHECK_UPLOAD_URL}>cdn.nostrcheck.me</option>
-                <option value="custom">Custom</option>
-              </select>
-              {uploadUrl === 'custom' && (
-                <input
-                  type="text"
-                  placeholder="Enter custom URL"
-                  className="rounded border px-2 py-1 text-sm dark:bg-gray-800 dark:text-white"
-                  onChange={(e) =>
-                    handleUploadUrlChange(e as unknown as React.ChangeEvent<HTMLSelectElement>)
-                  }
-                  onBlur={(e) => setUploadUrl(e.target.value)}
-                />
-              )}
+                <Send className="h-4 w-4" />
+              </button>
             </div>
-            {uploadError && <div className="mb-2 text-sm text-red-500">{uploadError}</div>}
-            <button
-              type="submit"
-              className="rounded bg-indigo-500 px-4 py-2 font-bold text-white hover:bg-indigo-600"
-              disabled={!content.trim()}
-            >
-              Post
-            </button>
+            {uploadError && <div className="mt-2 text-sm text-red-500">{uploadError}</div>}
           </form>
         )}
       </div>
