@@ -397,4 +397,20 @@ export const useNostrStore = create<NostrState>((set, get) => ({
     await Promise.all(relays.map((relay) => pool.publish([relay], eventToPublish)));
     set({ bookmarks: newBookmarks });
   },
+
+  logout: () => {
+    localStorage.removeItem('nostro:login');
+    set({
+      publicKey: null,
+      privateKey: null,
+      isExtensionLogin: false,
+      following: [],
+      events: [],
+      repostEvents: {},
+      searchResults: [],
+      profiles: {},
+      nip05ToPubkey: {},
+      bookmarks: [],
+    });
+  },
 }));

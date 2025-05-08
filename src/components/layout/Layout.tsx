@@ -1,11 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
-import { Search, Bookmark, Info, User } from 'lucide-react';
+import { Search, Bookmark, Info, User, LogOut } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
 import { LoginForm } from '@/components/nostr/LoginForm';
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { publicKey } = useNostrStore();
+  const { publicKey, logout } = useNostrStore();
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -16,7 +16,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Nostro</h1>
             </Link>
             {publicKey && (
-              <nav className="flex space-x-6">
+              <nav className="flex items-center space-x-6">
                 <Link
                   href={`/profile/${publicKey}`}
                   className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
@@ -53,6 +53,15 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     <span>About</span>
                   </div>
                 </Link>
+                <button
+                  onClick={logout}
+                  className="cursor-pointer text-indigo-600 underline hover:text-indigo-700"
+                >
+                  <div className="flex items-center gap-2">
+                    <LogOut className="h-4 w-4" />
+                    <span>Logout</span>
+                  </div>
+                </button>
               </nav>
             )}
           </div>

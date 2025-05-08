@@ -28,6 +28,7 @@ export interface NostrState {
   generateKeys: () => Promise<void>;
   setKeys: (privateKey: string) => void;
   loginWithExtension: () => Promise<void>;
+  logout: () => void;
   publishNote: (content: string) => Promise<void>;
   loadEvents: () => Promise<void>;
   unsubscribe: () => void;
