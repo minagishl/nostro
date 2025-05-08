@@ -3,6 +3,17 @@ import Link from 'next/link';
 import { Search, Bookmark, Info, User, Bell, Home, Settings, LucideIcon } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
 import { LoginForm } from '@/components/nostr/LoginForm';
+import { usePathname } from 'next/navigation';
+import { tv } from 'tailwind-variants';
+
+const link = tv({
+  base: 'flex items-center gap-2 rounded-lg p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100',
+  variants: {
+    active: {
+      true: 'text-indigo-600 dark:text-indigo-400',
+    },
+  },
+});
 
 type MenuItem = {
   href: string;
@@ -13,6 +24,7 @@ type MenuItem = {
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { publicKey } = useNostrStore();
+  const pathname = usePathname();
 
   const menuItems: MenuItem[] = [
     { href: '/', icon: Home, label: 'Home' },
@@ -47,7 +59,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="flex items-center gap-2 rounded-lg p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
+                    className={link({ active: pathname === item.href })}
                   >
                     <item.icon className="h-5 w-5" />
                     <span>{item.label}</span>
