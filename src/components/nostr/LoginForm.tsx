@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { LogIn, Key } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
 import { checkNostrProvider } from '@/utils/nostr';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 
 export const LoginForm = () => {
   const [privateKey, setPrivateKey] = useState('');
@@ -49,22 +50,14 @@ export const LoginForm = () => {
       </div>
 
       <form onSubmit={handlePrivateKeySubmit} className="space-y-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <Key className="h-4 w-4 text-gray-700" />
-            <label htmlFor="privateKey" className="block text-sm font-medium text-gray-700">
-              Private Key
-            </label>
-          </div>
-          <input
-            type="password"
-            id="privateKey"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            value={privateKey}
-            onChange={(e) => setPrivateKey(e.target.value)}
-            placeholder="Enter your private key in hex format"
-          />
-        </div>
+        <Input
+          type="password"
+          id="privateKey"
+          value={privateKey}
+          onChange={(e) => setPrivateKey(e.target.value)}
+          placeholder="Enter your private key in hex format"
+          label="Private Key"
+        />
         <Button type="submit" variant="outline" className="w-full">
           <div className="flex items-center justify-center gap-2">
             <LogIn className="h-5 w-5" />
