@@ -69,11 +69,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                   <span>About</span>
                 </Link>
                 <Link
-                  href="/settings"
+                  href="/preferences"
                   className="flex items-center gap-2 rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                 >
                   <Settings className="h-5 w-5" />
-                  <span>Settings</span>
+                  <span>Preferences</span>
                 </Link>
                 <button
                   onClick={logout}

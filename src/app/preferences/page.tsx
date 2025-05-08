@@ -2,7 +2,7 @@
 
 import { Layout } from '@/components/layout/Layout';
 
-export default function SettingsPage() {
+export default function PreferencesPage() {
   return (
     <Layout>
       <div></div>
