@@ -3,36 +3,28 @@ import Link from 'next/link';
 import { Search, Bookmark, Info, User, LogOut, Bell, Home, Settings } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
 import { LoginForm } from '@/components/nostr/LoginForm';
-import { tv } from 'tailwind-variants';
-
-const container = tv({
-  base: 'ml-auto w-full max-w-3/4',
-  variants: {
-    full: {
-      true: 'w-full max-w-full',
-      false: 'w-full max-w-3/4',
-    },
-  },
-});
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { publicKey, logout } = useNostrStore();
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      <header className="fixed top-0 z-10 w-full bg-white shadow dark:bg-gray-800">
-        <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <Link href="/">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Nostro</h1>
-            </Link>
-          </div>
-        </div>
-      </header>
-      <div className="mx-auto max-w-4xl px-4 pt-16 sm:px-6 lg:px-8">
-        <div className="relative flex">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="flex w-full">
+          <aside className="sticky top-0 h-dvh w-60 shrink-0 overflow-y-auto border-r border-gray-200 px-6 py-8 dark:border-gray-700">
+            <nav className="space-y-2"></nav>
+          </aside>
+          <main className="flex-1 overflow-y-auto py-8">
+            <div
+              className={
+                !publicKey ? 'flex h-full items-center justify-center' : 'mx-auto max-w-xl'
+              }
+            >
+              {publicKey ? children : <LoginForm />}
+            </div>
+          </main>
           {publicKey && (
-            <aside className="fixed py-8">
+            <aside className="sticky top-0 h-dvh w-60 shrink-0 overflow-y-auto border-l border-gray-200 px-6 py-8 dark:border-gray-700">
               <nav className="space-y-2">
                 <Link
                   href="/"
@@ -93,11 +85,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               </nav>
             </aside>
           )}
-          <main className="w-full flex-1 p-6">
-            <div className={container({ full: !publicKey })}>
-              {publicKey ? children : <LoginForm />}
-            </div>
-          </main>
         </div>
       </div>
     </div>
