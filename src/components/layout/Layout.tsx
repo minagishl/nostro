@@ -3,6 +3,17 @@ import Link from 'next/link';
 import { Search, Bookmark, Info, User, LogOut, Bell } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
 import { LoginForm } from '@/components/nostr/LoginForm';
+import { tv } from 'tailwind-variants';
+
+const container = tv({
+  base: 'ml-auto w-full max-w-3/4',
+  variants: {
+    full: {
+      true: 'w-full max-w-full',
+      false: 'w-full max-w-3/4',
+    },
+  },
+});
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { publicKey, logout } = useNostrStore();
@@ -69,7 +80,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             </aside>
           )}
           <main className="w-full flex-1 p-6">
-            <div className="ml-auto w-full max-w-3/4">{publicKey ? children : <LoginForm />}</div>
+            <div className={container({ full: !publicKey })}>
+              {publicKey ? children : <LoginForm />}
+            </div>
           </main>
         </div>
       </div>
