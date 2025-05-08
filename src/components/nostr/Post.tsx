@@ -1,5 +1,13 @@
 import React from 'react';
-import { MessageCircle, Repeat2, User, Bookmark, BookmarkCheck } from 'lucide-react';
+import {
+  MessageCircle,
+  Repeat2,
+  User,
+  Bookmark,
+  BookmarkCheck,
+  Smile,
+  Ellipsis,
+} from 'lucide-react';
 import Link from 'next/link';
 import { MediaViewer } from './MediaViewer';
 import { extractMediaUrls, formatContent } from '@/utils/content';
@@ -49,7 +57,7 @@ export const Post: React.FC<PostProps> = ({
   const displayEvent = isRepost ? originalEvent! : event;
 
   return (
-    <div className="mb-4 rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
+    <div className="dark:bg-gray-900">
       {isRepost && showRepostInfo && (
         <div className="flex items-center gap-2 px-4 pt-2 text-sm text-gray-500 dark:text-gray-400">
           <Repeat2 className="h-4 w-4" />
@@ -104,7 +112,7 @@ export const Post: React.FC<PostProps> = ({
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-4 border-t border-gray-200 px-4 py-2 dark:border-gray-700">
+        <div className="flex items-center justify-between gap-4 px-4 pt-2 pb-6">
           <button
             onClick={() => {
               onReply(displayEvent);
@@ -112,14 +120,12 @@ export const Post: React.FC<PostProps> = ({
             className="flex items-center gap-2 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
           >
             <MessageCircle className="h-5 w-5" />
-            Reply
           </button>
           <button
             onClick={() => onRepost(displayEvent)}
             className="flex items-center gap-2 text-gray-500 hover:text-green-500 dark:text-gray-400 dark:hover:text-green-400"
           >
             <Repeat2 className="h-5 w-5" />
-            Repost
           </button>
           <button
             onClick={() => onToggleBookmark(event.id)}
@@ -131,7 +137,6 @@ export const Post: React.FC<PostProps> = ({
             ) : (
               <Bookmark className="h-5 w-5" />
             )}
-            {isBookmarked ? 'Bookmarked' : 'Bookmark'}
           </button>
           {showReaction && onReact && setShowEmojiPickerId && (
             <div className="relative">
@@ -141,10 +146,7 @@ export const Post: React.FC<PostProps> = ({
                 }
                 className="flex items-center gap-2 text-gray-500 hover:text-yellow-500 dark:text-gray-400 dark:hover:text-yellow-400"
               >
-                <span role="img" aria-label="React">
-                  😊
-                </span>{' '}
-                React
+                <Smile className="h-5 w-5" />
               </button>
               {showEmojiPickerId === event.id && (
                 <div className="absolute z-10 mt-2 flex gap-1 rounded bg-white p-2 shadow dark:bg-gray-800">
@@ -164,6 +166,9 @@ export const Post: React.FC<PostProps> = ({
               )}
             </div>
           )}
+          <button className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400">
+            <Ellipsis className="h-5 w-5" />
+          </button>
         </div>
         {replyingToId === displayEvent.id && (
           <ReplyForm replyTo={displayEvent} onClose={onCloseReply ?? (() => {})} />

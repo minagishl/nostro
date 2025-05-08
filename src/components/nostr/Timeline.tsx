@@ -202,7 +202,7 @@ export const Timeline: React.FC<TimelineProps> = ({ events: propEvents }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="divide-y divide-gray-200 dark:divide-gray-700">
       {displayEvents.map((event) => {
         const originalEvent = isRepost(event) ? getOriginalEvent(event) : undefined;
         return (

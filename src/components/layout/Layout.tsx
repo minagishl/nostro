@@ -44,11 +44,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             <nav className="space-y-2"></nav>
           </aside>
           <main className="mt-4 flex-1 overflow-y-auto rounded-md border border-gray-200 py-4 dark:border-gray-700">
-            <div
-              className={
-                !publicKey ? 'flex h-full items-center justify-center' : 'mx-auto max-w-xl'
-              }
-            >
+            <div className={!publicKey ? 'flex h-full items-center justify-center' : 'w-full'}>
               {publicKey ? children : <LoginForm />}
             </div>
           </main>
