@@ -15,70 +15,62 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             <Link href="/">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Nostro</h1>
             </Link>
-            {publicKey && (
-              <nav className="flex items-center space-x-6">
-                <Link
-                  href={`/profile/${publicKey}`}
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                >
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    <span>Profile</span>
-                  </div>
-                </Link>
-                <Link
-                  href="/notifications"
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                >
-                  <div className="flex items-center gap-2">
-                    <Bell className="h-4 w-4" />
-                    <span>Notifications</span>
-                  </div>
-                </Link>
-                <Link
-                  href="/search"
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                >
-                  <div className="flex items-center gap-2">
-                    <Search className="h-4 w-4" />
-                    <span>Search</span>
-                  </div>
-                </Link>
-                <Link
-                  href="/bookmarks"
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                >
-                  <div className="flex items-center gap-2">
-                    <Bookmark className="h-4 w-4" />
-                    <span>Bookmarks</span>
-                  </div>
-                </Link>
-                <Link
-                  href="/about"
-                  className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-                >
-                  <div className="flex items-center gap-2">
-                    <Info className="h-4 w-4" />
-                    <span>About</span>
-                  </div>
-                </Link>
-                <button
-                  onClick={logout}
-                  className="cursor-pointer text-indigo-600 underline hover:text-indigo-700"
-                >
-                  <div className="flex items-center gap-2">
-                    <LogOut className="h-4 w-4" />
-                    <span>Logout</span>
-                  </div>
-                </button>
-              </nav>
-            )}
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-2xl py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">{publicKey ? children : <LoginForm />}</div>
-      </main>
+      <div className="flex min-h-[calc(100vh-4rem)]">
+        {publicKey && (
+          <aside className="w-64 bg-white shadow dark:bg-gray-800">
+            <nav className="space-y-2 p-4">
+              <Link
+                href={`/profile/${publicKey}`}
+                className="flex items-center gap-2 rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                <User className="h-5 w-5" />
+                <span>Profile</span>
+              </Link>
+              <Link
+                href="/notifications"
+                className="flex items-center gap-2 rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                <Bell className="h-5 w-5" />
+                <span>Notifications</span>
+              </Link>
+              <Link
+                href="/search"
+                className="flex items-center gap-2 rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                <Search className="h-5 w-5" />
+                <span>Search</span>
+              </Link>
+              <Link
+                href="/bookmarks"
+                className="flex items-center gap-2 rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                <Bookmark className="h-5 w-5" />
+                <span>Bookmarks</span>
+              </Link>
+              <Link
+                href="/about"
+                className="flex items-center gap-2 rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                <Info className="h-5 w-5" />
+                <span>About</span>
+              </Link>
+              <button
+                onClick={logout}
+                className="flex w-full items-center gap-2 rounded-lg p-2 text-indigo-600 hover:bg-gray-100 dark:text-indigo-400 dark:hover:bg-gray-700"
+              >
+                <LogOut className="h-5 w-5" />
+                <span>Logout</span>
+              </button>
+            </nav>
+          </aside>
+        )}
+        <main className="flex-1 p-6">
+          <div className="mx-auto max-w-2xl">{publicKey ? children : <LoginForm />}</div>
+        </main>
+      </div>
     </div>
   );
 };
