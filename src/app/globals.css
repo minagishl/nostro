@@ -1,19 +1,5 @@
 @import 'tailwindcss';
 
-/* Global link styles */
-a {
-  color: #4f46e5; /* Tailwind indigo-600 */
-  text-decoration: underline;
-}
-
-a:hover {
-  color: #4338ca; /* Tailwind indigo-700 */
-}
-
-a:has(> h1) {
-  text-decoration: none;
-}
-
 * {
   overscroll-behavior-y: none !important;
 }
