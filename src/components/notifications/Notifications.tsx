@@ -7,7 +7,13 @@ type NotificationType = 'all' | 'mentions' | 'reposts' | 'reactions';
 
 export const Notifications: React.FC = () => {
   const [activeTab, setActiveTab] = useState<NotificationType>('all');
-  const { notifications, fetchNotifications, subscribeToNotifications } = useNotificationsStore();
+  const {
+    notifications,
+    fetchNotifications,
+    subscribeToNotifications,
+    loadMoreNotifications,
+    hasMore,
+  } = useNotificationsStore();
 
   useEffect(() => {
     fetchNotifications();
@@ -71,6 +77,20 @@ export const Notifications: React.FC = () => {
                 timestamp={new Date(notification.timestamp * 1000).toLocaleString()}
               />
             ))}
+            {hasMore ? (
+              <div className="py-4 text-center">
+                <button
+                  onClick={loadMoreNotifications}
+                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+                >
+                  Load More
+                </button>
+              </div>
+            ) : (
+              <div className="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                No more notifications
+              </div>
+            )}
           </div>
         )}
       </div>
