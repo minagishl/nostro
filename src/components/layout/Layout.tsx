@@ -11,7 +11,7 @@ const link = tv({
   base: 'flex items-center gap-2 rounded-lg p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100',
   variants: {
     active: {
-      true: 'text-indigo-600 dark:text-indigo-400',
+      true: 'text-indigo-600 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400',
     },
   },
 });
