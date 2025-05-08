@@ -1,16 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import {
-  Search,
-  Bookmark,
-  Info,
-  User,
-  LogOut,
-  Bell,
-  Home,
-  Settings,
-  LucideIcon,
-} from 'lucide-react';
+import { Search, Bookmark, Info, User, Bell, Home, Settings, LucideIcon } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
 import { LoginForm } from '@/components/nostr/LoginForm';
 
@@ -22,7 +12,7 @@ type MenuItem = {
 };
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { publicKey, logout } = useNostrStore();
+  const { publicKey } = useNostrStore();
 
   const menuItems: MenuItem[] = [
     { href: '/', icon: Home, label: 'Home' },
@@ -63,13 +53,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                     <span>{item.label}</span>
                   </Link>
                 ))}
-                <button
-                  onClick={logout}
-                  className="flex w-full items-center gap-2 rounded-lg p-2 text-indigo-600 hover:bg-gray-100 dark:text-indigo-400 dark:hover:bg-gray-700"
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span>Logout</span>
-                </button>
               </nav>
             </aside>
           )}
