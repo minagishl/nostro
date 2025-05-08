@@ -27,10 +27,6 @@ export const LoginForm = () => {
       setError('Please enter your private key');
       return false;
     }
-    if (!/^[0-9a-fA-F]{64}$/.test(key)) {
-      setError('Private key must be 64 hexadecimal characters');
-      return false;
-    }
     setError(null);
     return true;
   };
