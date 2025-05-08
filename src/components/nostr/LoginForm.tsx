@@ -6,6 +6,7 @@ import { useNostrStore } from '@/store/useNostrStore';
 import { checkNostrProvider } from '@/utils/nostr';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
 
 export const LoginForm = () => {
   const [privateKey, setPrivateKey] = useState('');
@@ -43,7 +44,7 @@ export const LoginForm = () => {
 
   return (
     <div className="mx-auto max-w-md space-y-4 p-4">
-      <h2 className="text-xl font-bold">Login</h2>
+      <Label className="text-xl font-bold">Login</Label>
 
       {hasExtension && (
         <Button onClick={loginWithExtension} variant="primary" className="w-full">
