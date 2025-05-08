@@ -2,6 +2,17 @@ import { useState, useEffect } from 'react';
 import { Bell, AtSign, Repeat, Smile } from 'lucide-react';
 import { useNotificationsStore } from '@/store/useNotificationsStore';
 import { NotificationItem } from './NotificationItem';
+import { tv } from 'tailwind-variants';
+
+const notificationTabs = tv({
+  base: 'flex items-center gap-2 px-4 py-3 text-sm font-medium relative w-1/4 justify-center',
+  variants: {
+    active: {
+      true: 'text-indigo-600 dark:text-indigo-400 after:absolute after:bottom-0 after:left-1/2 after:-translate-x-1/2 after:w-1/4 after:border-b-2 after:border-indigo-500',
+      false: 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
+    },
+  },
+});
 
 type NotificationType = 'all' | 'mentions' | 'reposts' | 'reactions';
 
@@ -36,20 +47,16 @@ export const Notifications: React.FC = () => {
   });
 
   return (
-    <div className="rounded-lg bg-white shadow dark:bg-gray-800">
+    <div className="rounded-lg">
       <div className="border-b border-gray-200 dark:border-gray-700">
-        <nav className="-mb-px flex">
+        <nav className="flex w-full justify-between px-4">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium ${
-                  activeTab === tab.id
-                    ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                }`}
+                className={notificationTabs({ active: activeTab === tab.id })}
               >
                 <Icon className="h-4 w-4" />
                 {tab.label}
@@ -58,7 +65,7 @@ export const Notifications: React.FC = () => {
           })}
         </nav>
       </div>
-      <div className="p-4">
+      <div>
         {filteredNotifications.length === 0 ? (
           <div className="py-8 text-center text-gray-500 dark:text-gray-400">
             {activeTab === 'all' && 'No notifications yet'}
