@@ -23,6 +23,16 @@ export const LoginForm = () => {
     checkExtension();
   }, []);
 
+  const handleNip07Login = async () => {
+    try {
+      await loginWithExtension();
+      localStorage.setItem('nostro:login', 'nip07');
+    } catch (e) {
+      console.error('Failed to login with NIP-07:', e);
+      setError('Failed to login with extension');
+    }
+  };
+
   const validatePrivateKey = (key: string): boolean => {
     if (!key.trim()) {
       setError('Please enter your private key');
@@ -70,6 +80,9 @@ export const LoginForm = () => {
             .join('');
           // Save nsec1 key to localStorage
           localStorage.setItem('nostro:login', privateKey);
+        } else {
+          // For hex keys, store with a prefix to distinguish from nsec
+          localStorage.setItem('nostro:login', `hex:${privateKey}`);
         }
         setKeys(hexKey);
       } catch (e) {
@@ -80,31 +93,42 @@ export const LoginForm = () => {
   };
 
   useEffect(() => {
-    // Check for saved nsec key on mount
-    const savedNsec = localStorage.getItem('nostro:login');
-    if (savedNsec) {
-      setPrivateKey(savedNsec);
-      try {
-        const { type, data } = nip19.decode(savedNsec);
-        if (type === 'nsec') {
-          const hexKey = Array.from(data as Uint8Array)
-            .map((b) => b.toString(16).padStart(2, '0'))
-            .join('');
-          setKeys(hexKey);
+    // Check for saved login method on mount
+    const savedLogin = localStorage.getItem('nostro:login');
+    if (savedLogin) {
+      if (savedLogin === 'nip07') {
+        // Attempt to login with NIP-07 if that was the last method
+        loginWithExtension().catch(console.error);
+      } else if (savedLogin.startsWith('hex:')) {
+        // Handle hex key
+        const hexKey = savedLogin.slice(4);
+        setPrivateKey(hexKey);
+        setKeys(hexKey);
+      } else if (savedLogin.startsWith('nsec1')) {
+        // Handle nsec key
+        setPrivateKey(savedLogin);
+        try {
+          const { type, data } = nip19.decode(savedLogin);
+          if (type === 'nsec') {
+            const hexKey = Array.from(data as Uint8Array)
+              .map((b) => b.toString(16).padStart(2, '0'))
+              .join('');
+            setKeys(hexKey);
+          }
+        } catch (e) {
+          console.error('Failed to decode saved nsec:', e);
+          localStorage.removeItem('nostro:login');
         }
-      } catch (e) {
-        console.error('Failed to decode saved nsec:', e);
-        localStorage.removeItem('nostro:login');
       }
     }
-  }, [setKeys]);
+  }, [setKeys, loginWithExtension]);
 
   return (
     <div className="mx-auto max-w-md space-y-4 p-4">
       <Label className="text-xl font-bold">Login</Label>
 
       <Button
-        onClick={loginWithExtension}
+        onClick={handleNip07Login}
         variant="primary"
         className="w-full"
         disabled={!hasExtension}
