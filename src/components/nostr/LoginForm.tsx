@@ -68,6 +68,8 @@ export const LoginForm = () => {
           hexKey = Array.from(data as Uint8Array)
             .map((b) => b.toString(16).padStart(2, '0'))
             .join('');
+          // Save nsec1 key to localStorage
+          localStorage.setItem('nostro:login', privateKey);
         }
         setKeys(hexKey);
       } catch (e) {
@@ -76,6 +78,26 @@ export const LoginForm = () => {
       }
     }
   };
+
+  useEffect(() => {
+    // Check for saved nsec key on mount
+    const savedNsec = localStorage.getItem('nostro:login');
+    if (savedNsec) {
+      setPrivateKey(savedNsec);
+      try {
+        const { type, data } = nip19.decode(savedNsec);
+        if (type === 'nsec') {
+          const hexKey = Array.from(data as Uint8Array)
+            .map((b) => b.toString(16).padStart(2, '0'))
+            .join('');
+          setKeys(hexKey);
+        }
+      } catch (e) {
+        console.error('Failed to decode saved nsec:', e);
+        localStorage.removeItem('nostro:login');
+      }
+    }
+  }, [setKeys]);
 
   return (
     <div className="mx-auto max-w-md space-y-4 p-4">
