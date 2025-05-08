@@ -36,7 +36,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     { href: '/bookmarks', icon: Bookmark, label: 'Bookmarks' },
     { href: '/about', icon: Info, label: 'About' },
     {
-      element: <div key="divider" className="my-2 border-b border-gray-200 dark:border-gray-700" />,
+      element: <div key="divider" className="my-3 border-b border-gray-200 dark:border-gray-700" />,
     },
     { href: '/preferences', icon: Settings, label: 'Preferences' },
   ];
