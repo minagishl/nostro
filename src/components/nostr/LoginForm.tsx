@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 export const LoginForm = () => {
   const [privateKey, setPrivateKey] = useState('');
   const [hasExtension, setHasExtension] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { setKeys, loginWithExtension } = useNostrStore();
 
   useEffect(() => {
@@ -20,9 +21,24 @@ export const LoginForm = () => {
     checkExtension();
   }, []);
 
+  const validatePrivateKey = (key: string): boolean => {
+    if (!key.trim()) {
+      setError('Please enter your private key');
+      return false;
+    }
+    if (!/^[0-9a-fA-F]{64}$/.test(key)) {
+      setError('Private key must be 64 hexadecimal characters');
+      return false;
+    }
+    setError(null);
+    return true;
+  };
+
   const handlePrivateKeySubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setKeys(privateKey);
+    if (validatePrivateKey(privateKey)) {
+      setKeys(privateKey);
+    }
   };
 
   return (
@@ -54,9 +70,13 @@ export const LoginForm = () => {
           type="password"
           id="privateKey"
           value={privateKey}
-          onChange={(e) => setPrivateKey(e.target.value)}
+          onChange={(e) => {
+            setPrivateKey(e.target.value);
+            if (error) validatePrivateKey(e.target.value);
+          }}
           placeholder="Enter your private key in hex format"
           label="Private Key"
+          error={error}
         />
         <Button type="submit" variant="outline" className="w-full">
           <div className="flex items-center justify-center gap-2">

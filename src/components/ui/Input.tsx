@@ -21,7 +21,7 @@ const labelStyles = tv({
 
 type InputProps = {
   label?: string;
-  error?: string;
+  error?: string | null;
 } & InputHTMLAttributes<HTMLInputElement>;
 
 export function Input({ label, error, className, ...props }: InputProps) {
