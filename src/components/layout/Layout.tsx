@@ -21,7 +21,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       <header className="fixed top-0 z-10 w-full bg-white shadow dark:bg-gray-800">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <Link href="/">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Nostro</h1>
@@ -29,7 +29,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           </div>
         </div>
       </header>
-      <div className="mx-auto max-w-7xl px-4 pt-16 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl px-4 pt-16 sm:px-6 lg:px-8">
         <div className="relative flex">
           {publicKey && (
             <aside className="fixed py-8">
