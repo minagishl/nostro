@@ -7,6 +7,7 @@ import { checkNostrProvider } from '@/utils/nostr';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { nip19 } from 'nostr-tools';
 
 export const LoginForm = () => {
   const [privateKey, setPrivateKey] = useState('');
@@ -27,6 +28,28 @@ export const LoginForm = () => {
       setError('Please enter your private key');
       return false;
     }
+
+    // Check if it's a nsec format
+    if (key.startsWith('nsec1')) {
+      try {
+        const { type } = nip19.decode(key);
+        if (type === 'nsec') {
+          setError(null);
+          return true;
+        }
+      } catch (e) {
+        console.error('Failed to decode nsec:', e);
+        setError('Invalid nsec format');
+        return false;
+      }
+    }
+
+    // Check if it's a hex format
+    if (!/^[0-9a-f]{64}$/.test(key)) {
+      setError('Invalid private key format. Please enter a valid hex or nsec format');
+      return false;
+    }
+
     setError(null);
     return true;
   };
@@ -34,7 +57,23 @@ export const LoginForm = () => {
   const handlePrivateKeySubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validatePrivateKey(privateKey)) {
-      setKeys(privateKey);
+      try {
+        let hexKey = privateKey;
+        if (privateKey.startsWith('nsec1')) {
+          const { type, data } = nip19.decode(privateKey);
+          if (type !== 'nsec') {
+            throw new Error('Invalid nsec type');
+          }
+          // Convert Uint8Array to hex string
+          hexKey = Array.from(data as Uint8Array)
+            .map((b) => b.toString(16).padStart(2, '0'))
+            .join('');
+        }
+        setKeys(hexKey);
+      } catch (e) {
+        console.error('Failed to decode private key:', e);
+        setError('Failed to decode private key');
+      }
     }
   };
 
@@ -74,7 +113,7 @@ export const LoginForm = () => {
             setPrivateKey(e.target.value);
             if (error) validatePrivateKey(e.target.value);
           }}
-          placeholder="Enter your private key in hex format"
+          placeholder="Enter your private key in hex or nsec format"
           label="Private Key"
           error={error}
         />
