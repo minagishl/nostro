@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Loader2, Image, Smile, Send } from 'lucide-react';
+import { Loader2, ImageIcon, Smile, Send } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
 import { uploadImageToNostr } from '@/utils/fileUpload';
 
@@ -70,7 +70,7 @@ export const PostForm: React.FC = () => {
                     className="hidden"
                   />
                   <div className="py-1">
-                    <Image className="h-4 w-4" />
+                    <ImageIcon className="h-4 w-4" />
                   </div>
                 </label>
                 {uploading && <Loader2 className="h-4 w-4 animate-spin text-gray-500" />}
