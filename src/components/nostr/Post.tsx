@@ -13,6 +13,7 @@ import { MediaViewer } from './MediaViewer';
 import { extractMediaUrls, formatContent } from '@/utils/content';
 import { ReplyForm } from './ReplyForm';
 import type { Event } from 'nostr-tools';
+import { ICON_CONFIG } from '@/constants/icons';
 
 interface PostProps {
   event: Event;
@@ -119,13 +120,13 @@ export const Post: React.FC<PostProps> = ({
             }}
             className="flex items-center gap-2 text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400"
           >
-            <MessageCircle className="h-5 w-5" />
+            <MessageCircle className="h-5 w-5" strokeWidth={ICON_CONFIG.strokeWidth} />
           </button>
           <button
             onClick={() => onRepost(displayEvent)}
             className="flex items-center gap-2 text-gray-500 hover:text-green-500 dark:text-gray-400 dark:hover:text-green-400"
           >
-            <Repeat2 className="h-5 w-5" />
+            <Repeat2 className="h-5 w-5" strokeWidth={ICON_CONFIG.strokeWidth} />
           </button>
           <button
             onClick={() => onToggleBookmark(event.id)}
@@ -133,9 +134,9 @@ export const Post: React.FC<PostProps> = ({
             aria-label={isBookmarked ? 'ブックマーク解除' : 'ブックマーク'}
           >
             {isBookmarked ? (
-              <BookmarkCheck className="h-5 w-5" />
+              <BookmarkCheck className="h-5 w-5" strokeWidth={ICON_CONFIG.strokeWidth} />
             ) : (
-              <Bookmark className="h-5 w-5" />
+              <Bookmark className="h-5 w-5" strokeWidth={ICON_CONFIG.strokeWidth} />
             )}
           </button>
           {showReaction && onReact && setShowEmojiPickerId && (
@@ -146,7 +147,7 @@ export const Post: React.FC<PostProps> = ({
                 }
                 className="flex items-center gap-2 text-gray-500 hover:text-yellow-500 dark:text-gray-400 dark:hover:text-yellow-400"
               >
-                <Smile className="h-5 w-5" />
+                <Smile className="h-5 w-5" strokeWidth={ICON_CONFIG.strokeWidth} />
               </button>
               {showEmojiPickerId === event.id && (
                 <div className="absolute z-10 mt-2 flex gap-1 rounded bg-white p-2 shadow dark:bg-gray-800">
@@ -167,7 +168,7 @@ export const Post: React.FC<PostProps> = ({
             </div>
           )}
           <button className="flex items-center gap-2 text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400">
-            <Ellipsis className="h-5 w-5" />
+            <Ellipsis className="h-5 w-5" strokeWidth={ICON_CONFIG.strokeWidth} />
           </button>
         </div>
         {replyingToId === displayEvent.id && (

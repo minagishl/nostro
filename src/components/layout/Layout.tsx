@@ -6,6 +6,7 @@ import { LoginForm } from '@/components/nostr/LoginForm';
 import { usePathname, useRouter } from 'next/navigation';
 import { tv } from 'tailwind-variants';
 import { PostForm } from '@/components/nostr/PostForm';
+import { ICON_CONFIG } from '@/constants/icons';
 
 const link = tv({
   base: 'flex items-center gap-2 rounded-lg p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100',
@@ -63,7 +64,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           <aside className="sticky top-0 h-dvh w-80 shrink-0 overflow-y-auto px-6 py-8 pt-4 pr-4">
             <nav className="space-y-4">
               <div className="relative">
-                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500 dark:text-gray-400" />
+                <Search
+                  className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-500 dark:text-gray-400"
+                  strokeWidth={ICON_CONFIG.strokeWidth}
+                />
                 <input
                   ref={searchInputRef}
                   type="text"
@@ -97,7 +101,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                       className={link({ active: pathname === item.href })}
                       onClick={item.onClick}
                     >
-                      <item.icon className="h-5 w-5" />
+                      <item.icon className="h-5 w-5" strokeWidth={ICON_CONFIG.strokeWidth} />
                       <span>{item.label}</span>
                     </Link>
                   );

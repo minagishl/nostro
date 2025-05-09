@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import Link from 'next/link';
 import { AtSign, Repeat, Smile } from 'lucide-react';
+import { ICON_CONFIG } from '@/constants/icons';
 
 type NotificationItemProps = {
   type: 'mention' | 'repost' | 'reaction';
@@ -16,11 +17,11 @@ export const NotificationItem: FC<NotificationItemProps> = ({ type, user, conten
   const getIcon = () => {
     switch (type) {
       case 'mention':
-        return <AtSign className="h-4 w-4 text-blue-500" />;
+        return <AtSign className="h-4 w-4 text-blue-500" strokeWidth={ICON_CONFIG.strokeWidth} />;
       case 'repost':
-        return <Repeat className="h-4 w-4 text-green-500" />;
+        return <Repeat className="h-4 w-4 text-green-500" strokeWidth={ICON_CONFIG.strokeWidth} />;
       case 'reaction':
-        return <Smile className="h-4 w-4 text-yellow-500" />;
+        return <Smile className="h-4 w-4 text-yellow-500" strokeWidth={ICON_CONFIG.strokeWidth} />;
     }
   };
 

@@ -3,6 +3,7 @@ import { Bell, AtSign, Repeat, Smile } from 'lucide-react';
 import { useNotificationsStore } from '@/store/useNotificationsStore';
 import { NotificationItem } from './NotificationItem';
 import { tv } from 'tailwind-variants';
+import { ICON_CONFIG } from '@/constants/icons';
 
 const notificationTabs = tv({
   base: 'flex items-center gap-2 px-4 py-3 text-sm font-medium relative w-1/4 justify-center',
@@ -58,7 +59,7 @@ export const Notifications: React.FC = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={notificationTabs({ active: activeTab === tab.id })}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4" strokeWidth={ICON_CONFIG.strokeWidth} />
                 {tab.label}
               </button>
             );

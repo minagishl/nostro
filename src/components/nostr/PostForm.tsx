@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Loader2, ImageIcon, Smile, Send } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
 import { uploadImageToNostr } from '@/utils/fileUpload';
+import { ICON_CONFIG } from '@/constants/icons';
 
 export const PostForm: React.FC = () => {
   const [content, setContent] = useState('');
@@ -70,16 +71,21 @@ export const PostForm: React.FC = () => {
                     className="hidden"
                   />
                   <div className="py-1">
-                    <ImageIcon className="h-4 w-4" />
+                    <ImageIcon className="h-4 w-4" strokeWidth={ICON_CONFIG.strokeWidth} />
                   </div>
                 </label>
-                {uploading && <Loader2 className="h-4 w-4 animate-spin text-gray-500" />}
+                {uploading && (
+                  <Loader2
+                    className="h-4 w-4 animate-spin text-gray-500"
+                    strokeWidth={ICON_CONFIG.strokeWidth}
+                  />
+                )}
                 <button
                   type="button"
                   className="cursor-pointer text-gray-500 hover:text-indigo-500 dark:text-gray-400 dark:hover:text-indigo-400"
                 >
                   <div className="py-1">
-                    <Smile className="h-4 w-4" />
+                    <Smile className="h-4 w-4" strokeWidth={ICON_CONFIG.strokeWidth} />
                   </div>
                 </button>
               </div>
@@ -87,7 +93,7 @@ export const PostForm: React.FC = () => {
                 type="submit"
                 className="rounded-md py-1 font-semibold text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-500"
               >
-                <Send className="h-4 w-4" />
+                <Send className="h-4 w-4" strokeWidth={ICON_CONFIG.strokeWidth} />
               </button>
             </div>
             {uploadError && <div className="mt-2 text-sm text-red-500">{uploadError}</div>}

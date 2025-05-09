@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { nip19 } from 'nostr-tools';
+import { ICON_CONFIG } from '@/constants/icons';
 
 export const LoginForm = () => {
   const [privateKey, setPrivateKey] = useState('');
@@ -163,11 +164,9 @@ export const LoginForm = () => {
           label="Private Key"
           error={error}
         />
-        <Button type="submit" variant="outline" className="w-full">
-          <div className="flex items-center justify-center gap-2">
-            <LogIn className="h-5 w-5" />
-            <span>Login with Private Key</span>
-          </div>
+        <Button type="submit" className="w-full">
+          <LogIn className="mr-2 h-4 w-4" strokeWidth={ICON_CONFIG.strokeWidth} />
+          Login
         </Button>
       </form>
     </div>
