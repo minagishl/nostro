@@ -290,14 +290,15 @@ export const useNostrStore = create<NostrState>((set, get) => ({
   },
 
   searchEvents: async (query: string) => {
-    const { pool, relays } = get();
+    const { pool } = get();
+    const searchRelay = 'wss://relay.nostr.band';
     const filter: Filter = {
       kinds: [1],
       search: query,
       limit: 100,
     };
 
-    const events = await pool.querySync(relays, filter);
+    const events = await pool.querySync([searchRelay], filter);
     set({ searchResults: events.sort((a: Event, b: Event) => b.created_at - a.created_at) });
   },
 
