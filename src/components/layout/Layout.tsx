@@ -58,7 +58,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="min-h-screen antialiased dark:bg-gray-900">
       <div className="mx-auto max-w-7xl">
         <div className="flex w-full">
           <aside className="sticky top-0 h-dvh w-80 shrink-0 overflow-y-auto px-6 py-8 pt-4 pr-4">
