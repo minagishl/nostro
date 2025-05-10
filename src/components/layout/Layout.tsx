@@ -101,7 +101,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                       className={link({ active: pathname === item.href })}
                       onClick={item.onClick}
                     >
-                      <item.icon className="h-5 w-5" strokeWidth={ICON_CONFIG.strokeWidth} />
+                      <item.icon
+                        className={`h-5 w-5 ${item.icon === Bolt ? 'rotate-90' : ''}`}
+                        strokeWidth={ICON_CONFIG.strokeWidth}
+                      />
                       <span>{item.label}</span>
                     </Link>
                   );
