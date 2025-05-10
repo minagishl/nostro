@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import Link from 'next/link';
-import { Search, Bookmark, Info, User, Bell, Home, Settings, LucideIcon } from 'lucide-react';
+import { Search, Bookmark, Info, User, Bell, Home, Bolt, LucideIcon } from 'lucide-react';
 import { useNostrStore } from '@/store/useNostrStore';
 import { LoginForm } from '@/components/nostr/LoginForm';
 import { usePathname, useRouter } from 'next/navigation';
@@ -54,7 +54,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     {
       element: <div key="divider" className="my-3 border-b border-gray-200 dark:border-gray-700" />,
     },
-    { href: '/preferences', icon: Settings, label: 'Preferences' },
+    { href: '/preferences', icon: Bolt, label: 'Preferences' },
   ];
 
   return (
